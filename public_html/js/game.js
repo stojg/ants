@@ -1,4 +1,4 @@
-define(['movable'], function (Movable) {
+define(['movable', 'pulse'], function (Movable) {
     //Do setup work here
 	var game = {};
 
@@ -7,12 +7,12 @@ define(['movable'], function (Movable) {
 		height: 0
 	};
 	
-	game.init = function() {
+	game.init = function(canvasID) {
 		
 		pulse.ready(function() {
 			// Create an engine.
 			var engine = new pulse.Engine({
-				gameWindow: 'game-world',
+				gameWindow: canvasID,
 				size: {
 					width: game.world.width,
 					height: game.world.height

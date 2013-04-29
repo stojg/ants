@@ -1,4 +1,4 @@
-define(function () {
+define(['pulse'],function () {
 
 	Movable = pulse.Sprite.extend({
 
