@@ -24,20 +24,22 @@ define(['pulse', 'game'], function (pulse, Game) {
 		},
 
 		move : function(elapsed) {
-			this.position.x += (this.velocity.x*(elapsed/1000));
-			this.position.y += (this.velocity.y*(elapsed/1000));
+			this.position.x += this.velocity.x*(elapsed/1000);
+			this.position.y += this.velocity.y*(elapsed/1000);
 
-			var collisions = this.collision();
-			if(collisions.length > 0) {
-				for(var i = 0; i < collisions.length; i++) {
-					var mtd = this.minimumTranslation(collisions[i]);
-					this.position.x += mtd[0];
-					this.position.y += mtd[1];
-				}
+			var collisions = this.get_collisions();
+			if(collisions.length === 0) {
+				return;
+			}
+			
+			for(var i = 0; i < collisions.length; i++) {
+				var mtd = this.minimumTranslation(collisions[i]);
+				this.position.x += mtd[0];
+				this.position.y += mtd[1];
 			}
 		},
 		
-		collision : function() {
+		get_collisions : function() {
 			var collisions = [];
 			for(key in this.layer.objects) {
 				var object = this.layer.objects[key];
@@ -45,6 +47,7 @@ define(['pulse', 'game'], function (pulse, Game) {
 					continue;
 				}
 				if(this.aabb_vs_aabb(object)) {
+					//console.log(this.cbox());
 					collisions.push(object);
 				}
 			}
@@ -56,13 +59,10 @@ define(['pulse', 'game'], function (pulse, Game) {
 		},
 		
 		minimumTranslation: function(other) {
-			// Vector2
             var amin = [this.cbox().x-this.cbox().w, this.cbox().y-this.cbox().h];
             var amax = [this.cbox().x+this.cbox().w, this.cbox().y+this.cbox().h];
-
             var bmin = [other.cbox().x-other.cbox().w, other.cbox().y-other.cbox().h];
             var bmax = [other.cbox().x+other.cbox().w, other.cbox().y+other.cbox().h];
-			// Vector2
             var mtd = [0,0];
 
 			// float
@@ -71,19 +71,20 @@ define(['pulse', 'game'], function (pulse, Game) {
             var top = (bmin[1] - amax[1]);
             var bottom = (bmax[1] - amin[1]);
 			
-            // boxes intersect, work out the mtd on both x and y axes.
-            if (Math.abs(left) < right) {
+            // Boxes intersect, work out the mtd on both x and y axes.
+            if(Math.abs(left) < right) {
 				mtd[0] = left;
 			} else {
                 mtd[0] = right;
 			}
-            if (Math.abs(top) < bottom) {
+            if(Math.abs(top) < bottom) {
 				mtd[1] = top;
 			} else {
                 mtd[1] = bottom;
 			}
+			
             // 0 the axis with the largest mtd value.
-            if (Math.abs(mtd[0]) < Math.abs(mtd[1])) {
+            if(Math.abs(mtd[0]) < Math.abs(mtd[1])) {
 				mtd[1] = 0;
 			} else {
 				mtd[0] = 0;

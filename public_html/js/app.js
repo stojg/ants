@@ -48,7 +48,7 @@ define(["game"], function(Game){
 			src: new pulse.Texture({
 				filename: 'img/ant.png'
 			}),
-			size: {x: 4, y: 2},
+			size: {x: 6, y: 3},
 			position: { x: pos[0], y: pos[1] },
 			anchor: {x: 0.5, y: 0.5},
 			layer: layer,
