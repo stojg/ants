@@ -43,6 +43,10 @@ Vector.prototype = {
     return Math.sqrt(this.dot(this));
   },
 
+  length: function() {
+	  return this.modulus();
+  },
+
   // Returns true iff the vector is equal to the argument
   eql: function(vector) {
     var n = this.elements.length;

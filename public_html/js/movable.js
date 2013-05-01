@@ -19,8 +19,10 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 			if(!this.static) {
 				this.move(elapsed);
 			}
-			var radians = $V([1,0]).angle($V([this.velocity.x, this.velocity.y]));
-			this.rotation = radians * (180/Math.PI);
+			if($V([this.velocity.x, this.velocity.y]).length()) {
+				var radians = $V([1,0]).angle($V([this.velocity.x, this.velocity.y]));
+				this.rotation = radians * (180/Math.PI);
+			}
 			this._super(elapsed);
 		},
 
