@@ -50,7 +50,7 @@ define(["game"], function(Game){
 			}),
 			size: {x: 4, y: 2},
 			position: { x: pos[0], y: pos[1] },
-			anchor: {x: 2, y: 1},
+			anchor: {x: 0.5, y: 0.5},
 			layer: layer,
 			velocity: {x: velocity[0], y:velocity[1]},
 			rotation: rotation,

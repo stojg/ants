@@ -16,25 +16,29 @@ define(['pulse', 'game'], function (pulse, Game) {
 		},
 
 		update : function(elapsed) {
-			this.move(elapsed);
+			if(!this.static) {
+				this.move(elapsed);
+			}
+			
 			this._super(elapsed);
 		},
 
 		move : function(elapsed) {
-			this.position.x += this.velocity.x*(elapsed/1000);
-			this.position.y += this.velocity.y*(elapsed/1000);
-			
-			if(this.collision().length > 0) {
-				this.position = this.positionPrevious;
-				console.log('hit');
+			this.position.x += (this.velocity.x*(elapsed/1000));
+			this.position.y += (this.velocity.y*(elapsed/1000));
+
+			var collisions = this.collision();
+			if(collisions.length > 0) {
+				for(var i = 0; i < collisions.length; i++) {
+					var mtd = this.minimumTranslation(collisions[i]);
+					this.position.x += mtd[0];
+					this.position.y += mtd[1];
+				}
 			}
 		},
 		
 		collision : function() {
 			var collisions = [];
-			if(this.static) {
-				return collisions;
-			}
 			for(key in this.layer.objects) {
 				var object = this.layer.objects[key];
 				if(object.name === this.name) {
@@ -50,6 +54,42 @@ define(['pulse', 'game'], function (pulse, Game) {
 		aabb_vs_aabb : function(that) {
 			return (Math.abs(this.cbox().x - that.cbox().x) * 2 < (this.cbox().w + that.cbox().w)) && (Math.abs(this.cbox().y - that.cbox().y) * 2 < (this.cbox().h + that.cbox().h));
 		},
+		
+		minimumTranslation: function(other) {
+			// Vector2
+            var amin = [this.cbox().x-this.cbox().w, this.cbox().y-this.cbox().h];
+            var amax = [this.cbox().x+this.cbox().w, this.cbox().y+this.cbox().h];
+
+            var bmin = [other.cbox().x-other.cbox().w, other.cbox().y-other.cbox().h];
+            var bmax = [other.cbox().x+other.cbox().w, other.cbox().y+other.cbox().h];
+			// Vector2
+            var mtd = [0,0];
+
+			// float
+            var left = (bmin[0] - amax[0]);
+            var right = (bmax[0] - amin[0]);
+            var top = (bmin[1] - amax[1]);
+            var bottom = (bmax[1] - amin[1]);
+			
+            // boxes intersect, work out the mtd on both x and y axes.
+            if (Math.abs(left) < right) {
+				mtd[0] = left;
+			} else {
+                mtd[0] = right;
+			}
+            if (Math.abs(top) < bottom) {
+				mtd[1] = top;
+			} else {
+                mtd[1] = bottom;
+			}
+            // 0 the axis with the largest mtd value.
+            if (Math.abs(mtd[0]) < Math.abs(mtd[1])) {
+				mtd[1] = 0;
+			} else {
+				mtd[0] = 0;
+			}
+            return mtd;
+        },
 				
 		cbox : function() {
 			return {
