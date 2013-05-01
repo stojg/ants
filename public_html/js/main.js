@@ -2,16 +2,14 @@ require.config({
 	paths: {
 		pulse: 'libs/pulse/bin/pulse'
 	},
-
 	shim: {
-        'pulse': {
-            exports: 'pulse'
-        }
+		'pulse': {
+			exports: 'pulse'
+		}
 	}
-	
 });
 
-require(['app'], function(App){
+require(['app'], function(App) {
 	App.init();
 });
 
