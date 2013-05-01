@@ -43,17 +43,15 @@ define(["game"], function(Game){
 		});
 	};
 
-	var create_ant = function (pos, velocity, rotation, layer) {
+	var create_ant = function (pos, velocity, rotation, layer, dead) {
 		return new Movable({
-			src: new pulse.Texture({
-				filename: 'img/ant.png'
-			}),
+			src: new pulse.Texture({filename: 'img/ant.png'}),
 			size: {x: 6, y: 3},
 			position: { x: pos[0], y: pos[1] },
-			anchor: {x: 0.5, y: 0.5},
 			layer: layer,
 			velocity: {x: velocity[0], y:velocity[1]},
 			rotation: rotation,
+			static: dead
 		});
 	};
 

@@ -58,11 +58,13 @@ define(['pulse', 'game'], function (pulse, Game) {
 			return (Math.abs(this.cbox().x - that.cbox().x) * 2 < (this.cbox().w + that.cbox().w)) && (Math.abs(this.cbox().y - that.cbox().y) * 2 < (this.cbox().h + that.cbox().h));
 		},
 		
-		minimumTranslation: function(other) {
-            var amin = [this.cbox().x-this.cbox().w, this.cbox().y-this.cbox().h];
-            var amax = [this.cbox().x+this.cbox().w, this.cbox().y+this.cbox().h];
-            var bmin = [other.cbox().x-other.cbox().w, other.cbox().y-other.cbox().h];
-            var bmax = [other.cbox().x+other.cbox().w, other.cbox().y+other.cbox().h];
+		minimumTranslation: function(that) {
+            var amin = [this.cbox().x - this.cbox().w/2, this.cbox().y - this.cbox().h/2];
+			var bmin = [that.cbox().x - that.cbox().w/2, that.cbox().y - that.cbox().h/2];
+
+			var bmax = [that.cbox().x + that.cbox().w/2, that.cbox().y + that.cbox().h/2];
+            var amax = [this.cbox().x + this.cbox().w/2, this.cbox().y + this.cbox().h/2];
+
             var mtd = [0,0];
 
 			// float
@@ -70,7 +72,6 @@ define(['pulse', 'game'], function (pulse, Game) {
             var right = (bmax[0] - amin[0]);
             var top = (bmin[1] - amax[1]);
             var bottom = (bmax[1] - amin[1]);
-			
             // Boxes intersect, work out the mtd on both x and y axes.
             if(Math.abs(left) < right) {
 				mtd[0] = left;
@@ -89,6 +90,7 @@ define(['pulse', 'game'], function (pulse, Game) {
 			} else {
 				mtd[0] = 0;
 			}
+			
             return mtd;
         },
 				
