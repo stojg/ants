@@ -6,7 +6,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 			args = args || {};
 			this._super(args);
 			this.max_velocity = 20;
-			this.max_angular_velocity = 0.5;
+			this.max_angular_velocity = 0.1;
 			this.position = args.position || {x: 0, y: 0};
 			this.velocity = args.velocity || {x: 0, y: 0};
 			this.angular_velocity = args.angular_velocity || 0;
@@ -131,7 +131,8 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 				position: $V([this.position.x, this.position.y]),
 				velocity: $V([this.velocity.x, this.velocity.y]),
 				orientation: this.rotation,
-				max_velocity: this.max_velocity
+				max_velocity: this.max_velocity,
+				max_angular_velocity: this.max_angular_velocity
 			});
 		}
 	});
