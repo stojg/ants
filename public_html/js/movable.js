@@ -95,11 +95,32 @@ define(['pulse', 'game'], function (pulse, Game) {
         },
 				
 		cbox : function() {
+			if(this.rotation === 0) {
+				return {
+					x: this.position.x, y: this.position.y,
+					w: this.size.x, h: this.size.y
+				};
+			}
+
+			var top_right_x = this.size.x/2;
+			var bottom_right_x = this.size.x/2;
+			var top_right_y = -this.size.y;
+			var bottom_right_y = this.size.y;
+
+			var sin_o = Math.sin(this.rotation * (Math.PI / 180));
+			var cos_o = Math.cos(this.rotation * (Math.PI / 180));
+
+			var new_top_right_x = top_right_x * cos_o - top_right_y * sin_o;
+			var new_top_right_y = top_right_x * sin_o + top_right_y * cos_o;
+			var new_bottom_right_x = bottom_right_x * cos_o - bottom_right_y * sin_o;
+			var new_bottom_right_y = bottom_right_x * sin_o + bottom_right_y * cos_o;
+
+			var half_width = Math.max(Math.abs(new_top_right_x), Math.abs(new_bottom_right_x));
+			var half_height = Math.max(Math.abs(new_top_right_y), Math.abs(new_bottom_right_y));
+
 			return {
-				x: this.position.x,
-				y: this.position.y,
-				w: this.size.x,
-				h: this.size.y
+				x: this.position.x, y: this.position.y,
+				w: half_width*2, h: half_height*2
 			};
 		}
 	});

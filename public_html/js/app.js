@@ -13,11 +13,11 @@ define(["game"], function(Game){
 			layer.position = {x: 0, y: 0};
 			layer.anchor = {x: 0, y: 0};
 			
-			layer.addNode(create_ant([20, 30], [10, 0],  0, layer));
-			layer.addNode(create_ant([40, 30], [-10, 0], 180, layer));
+			layer.addNode(create_ant([20, 30], [1, 0], 0, layer));
+			layer.addNode(create_ant([40, 30], [-1, 0], 180, layer));
 
 			layer.addNode(create_ant([20, 40], [15, 0], 0, layer));
-			layer.addNode(create_ant([40, 40], [5, 0],  0, layer));
+			layer.addNode(create_ant([40, 40], [10, 0],  0, layer));
 
 			layer.addNode(create_ant([60, 20], [0, 5],  90, layer));
 			layer.addNode(create_ant([60, 40], [0, -5], 270, layer));
@@ -25,7 +25,7 @@ define(["game"], function(Game){
 			layer.addNode(create_ant([60, 60], [5, 5], 45, layer));
 			layer.addNode(create_ant([80, 80], [-5, -5], 225, layer));
 
-			layer.addNode(create_ant([20, 20], [0, -10], 90, layer));
+			layer.addNode(create_ant([20, 20], [0, -10], 270, layer));
 
 			layer.addNode(create_vertical_wall([1,160], layer));
 			layer.addNode(create_vertical_wall([960,160], layer));
@@ -46,7 +46,7 @@ define(["game"], function(Game){
 	var create_ant = function (pos, velocity, rotation, layer, dead) {
 		return new Movable({
 			src: new pulse.Texture({filename: 'img/ant.png'}),
-			size: {x: 6, y: 3},
+			size: {x: 4, y: 2},
 			position: { x: pos[0], y: pos[1] },
 			layer: layer,
 			velocity: {x: velocity[0], y:velocity[1]},
