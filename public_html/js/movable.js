@@ -1,4 +1,4 @@
-define(['pulse'], function (pulse) {
+define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 
 	Movable = pulse.Sprite.extend({
 
@@ -19,16 +19,18 @@ define(['pulse'], function (pulse) {
 			if(!this.static) {
 				this.move(elapsed);
 			}
-			
+			var radians = $V([1,0]).angle($V([this.velocity.x, this.velocity.y]));
+			this.rotation = radians * (180/Math.PI);
 			this._super(elapsed);
 		},
 
 		move : function(elapsed) {
 			this.position.x += this.velocity.x*(elapsed/1000);
 			this.position.y += this.velocity.y*(elapsed/1000);
-
+			
 			var collisions = this.get_collisions();
 			if(collisions.length === 0) {
+				
 				return;
 			}
 			
@@ -122,6 +124,15 @@ define(['pulse'], function (pulse) {
 				x: this.position.x, y: this.position.y,
 				w: half_width*2, h: half_height*2
 			};
+		},
+
+		kinematics : function() {
+			return new ai.steering.kinematics({
+				position: $V([this.position.x, this.position.y]),
+				velocity: $V([this.velocity.x, this.velocity.y]),
+				orientation: this.rotation,
+				max_velocity: this.max_velocity
+			});
 		}
 	});
 	return Movable;

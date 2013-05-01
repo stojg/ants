@@ -1,4 +1,4 @@
-define(["game"], function(Game){
+define(["game", "ant"], function(Game){
 
 	var init = function() {
 
@@ -13,19 +13,19 @@ define(["game"], function(Game){
 			layer.position = {x: 0, y: 0};
 			layer.anchor = {x: 0, y: 0};
 			
-			layer.addNode(create_ant({x: 20, y:30}, [1, 0], 0, layer));
-			layer.addNode(create_ant({x: 40, y: 30}, [-1, 0], 180, layer));
+			//layer.addNode(create_ant({x: 160, y:160}, [1, 0], 0, layer));
+			//layer.addNode(create_ant({x: 40, y: 30}, [-1, 0], 180, layer));
 
-			layer.addNode(create_ant({x: 20, y: 40}, [15, 0], 0, layer));
-			layer.addNode(create_ant({x: 40, y: 40}, [10, 0],  0, layer));
+			//layer.addNode(create_ant({x: 20, y: 40}, [15, 0], 0, layer));
+			//layer.addNode(create_ant({x: 40, y: 40}, [10, 0],  0, layer));
 
-			layer.addNode(create_ant({x: 60, y: 20}, [0, 5],  90, layer));
-			layer.addNode(create_ant({x: 60, y: 40}, [0, -5], 270, layer));
+			//layer.addNode(create_ant({x: 60, y: 20}, [0, 5],  90, layer));
+			//layer.addNode(create_ant({x: 60, y: 40}, [0, -5], 270, layer));
 
-			layer.addNode(create_ant({x: 60, y: 60}, [5, 5], 45, layer));
-			layer.addNode(create_ant({x: 80, y: 80}, [-5, -5], 225, layer));
+			//layer.addNode(create_ant({x: 60, y: 60}, [5, 5], 45, layer));
+			//layer.addNode(create_ant({x: 80, y: 80}, [-5, -5], 225, layer));
 
-			layer.addNode(create_ant({x: 20, y: 20}, [0, -10], 270, layer));
+			//layer.addNode(create_ant({x: 20, y: 20}, [0, -10], 270, layer));
 
 			layer.addNode(create_vertical_wall([1,160], layer));
 			layer.addNode(create_vertical_wall([960,160], layer));
@@ -48,9 +48,7 @@ define(["game"], function(Game){
 	};
 
 	var create_ant = function (position, velocity, rotation, layer, dead) {
-		return new Movable({
-			src: new pulse.Texture({filename: 'img/ant.png'}),
-			size: {x: 4, y: 2},
+		return new Ant({
 			position: position,
 			layer: layer,
 			velocity: {x: velocity[0], y:velocity[1]},
