@@ -65,8 +65,8 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		init: function(character, target) {
 			this.character = character;
 			this.target = target;
-			this.targetRadius = 10;
-			this.slow_radius = 30;
+			this.targetRadius = 6;
+			this.slow_radius = 20;
 			this.timeToTarget = 0.1;
 		},
 		get: function() {
@@ -86,7 +86,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			if(distance < this.slow_radius) {
 				target_speed = this.character.max_velocity * distance / this.slow_radius;
 			}
-
+			
 			// The target velocity combines speed and direction
 			var targetVelocity = direction;
 			targetVelocity = targetVelocity.normalize();
@@ -101,7 +101,6 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 				steering.linear = steering.linear.normalize();
 				steering.linear = steering.linear.multiply(this.character.max_acceleration);
 			}
-			
 			return steering;
 		}
 	});
