@@ -5,13 +5,19 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 		init : function(args) {
 			args = args || {};
 			this._super(args);
-			this.max_velocity = 20;
-			this.max_angular_velocity = 0.1;
+			
 			this.position = args.position || {x: 0, y: 0};
 			this.velocity = args.velocity || {x: 0, y: 0};
-			this.angular_velocity = args.angular_velocity || 0;
-			this.layer = args.layer;
+			this.max_acceleration = args.max_acceleration || 0;
+
 			this.rotation = args.rotation || 0;
+			this.angular_velocity = args.angular_velocity || 0;
+			this.max_angular_acceleration = args.max_angular_acceleration || 0;
+			
+			this.max_velocity = args.max_velocity || 0;
+			this.max_angular_velocity = args.max_angular_velocity ||0;
+			
+			this.layer = args.layer;
 			this.static = args.static || false;
 		},
 
@@ -134,7 +140,9 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 				velocity: $V([this.velocity.x, this.velocity.y]),
 				orientation: this.rotation,
 				max_velocity: this.max_velocity,
-				max_angular_velocity: this.max_angular_velocity
+				max_acceleration: this.max_acceleration,
+				max_angular_velocity: this.max_angular_velocity,
+				max_angular_acceleration: this.max_angular_acceleration
 			});
 		}
 	});

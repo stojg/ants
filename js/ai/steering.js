@@ -7,11 +7,16 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 
 	ai.steering.Kinematics = Class.extend({
 		init: function(args) {
+			// current state
 			this.position = args.position || vec([0, 0]);
 			this.velocity = args.velocity || vec([0, 0]);
 			this.orientation = args.orientation || 0;
+			// speed / velocity limits
 			this.max_velocity = args.max_velocity || 0;
+			this.max_acceleration = args.max_acceleration || 0,
+			// rotation limits
 			this.max_angular_velocity = args.max_angular_velocity || 0;
+			this.max_angular_acceleration = args.max_angular_acceleration || 0;
 		}
 	});
 
@@ -20,11 +25,8 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			this.linear = vec([0, 0]);
 			this.angular = 0;
 		},
-		velocity: function() {
-			return {
-				x: this.linear.e(1),
-				y: this.linear.e(2)
-			}
+		acceleration: function() {
+			return this.linear;
 		}
 	});
 	
@@ -38,7 +40,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			steering.linear = this.target.position.subtract(this.character.position);
 			steering.linear = steering.linear.normalize(steering.linear);
 			// Give full acceleration
-			steering.linear = steering.linear.multiply(this.character.max_velocity);
+			steering.linear = steering.linear.multiply(this.character.max_acceleration);
 			return steering;
 		}
 	});
@@ -50,7 +52,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			steering.linear = this.character.position.subtract(this.target.position);
 			steering.linear = steering.linear.normalize(steering.linear);
 			// Give full acceleration
-			steering.linear = steering.linear.multiply(this.character.max_velocity);
+			steering.linear = steering.linear.multiply(this.character.max_acceleration);
 			return steering;
 		}
 	});
@@ -59,27 +61,42 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		init: function(character, target) {
 			this.character = character;
 			this.target = target;
-			this.targetRadius = 5;
-			this.slowRadius = 30;
-			this.timeToTarget = 0.25;
+			this.targetRadius = 10;
+			this.slow_radius = 30;
+			this.timeToTarget = 0.1;
 		},
 		get: function() {
 			var steering = new ai.steering.Output();
+			
 			var direction = this.target.position.subtract(this.character.position);
-			var distance = this.target.position.distanceFrom(this.character.position);
+			var distance = direction.length();
 
-			if (distance < this.targetRadius) {
+			// We're there, we're there!
+			if(distance < this.targetRadius) {
 				return steering;
 			}
 
-			var targetSpeed = this.character.max_velocity;
-			if (distance < this.slowRadius) {
-				targetSpeed = targetSpeed * distance / this.slowRadius;
+			// Go max speed
+			var target_speed = this.character.max_velocity;
+			// unless we're in the slowRadius
+			if(distance < this.slow_radius) {
+				target_speed = this.character.max_velocity * distance / this.slow_radius;
 			}
-			steering.linear = direction.normalize();
-			// Give full acceleration
+
+			// The target velocity combines speed and direction
+			var targetVelocity = direction;
+			targetVelocity = targetVelocity.normalize();
+			targetVelocity = targetVelocity.multiply(target_speed);
+
+			// acceleration tries to get to the target velocity
 			
-			steering.linear = steering.linear.multiply(targetSpeed);
+			steering.linear = targetVelocity.subtract(this.character.velocity);
+			steering.linear = steering.linear.multiply(1/this.timeToTarget);
+			
+			if(steering.linear.length() > this.character.max_acceleration) {
+				steering.linear = steering.linear.normalize();
+				steering.linear = steering.linear.multiply(this.character.max_acceleration);
+			}
 			
 			return steering;
 		}
