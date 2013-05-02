@@ -15,14 +15,17 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				
 		update : function(elapsed) {
 
-			var others = this.get_others('ant');
-			if(others.length > 0 ) {
-				var target = others.pop();
-				var behaviour = new ai.steering.Face(this.kinematics(), target.kinematics());
-				var steering = this.actuation(behaviour, elapsed);
-				this.velocity = steering.velocity;
-				this.rotation = steering.rotation;
-			}
+			var target = new ai.steering.Kinematics({
+				position: $V([480, 160])
+			});
+			var face = new ai.steering.Face(this.kinematics(), target);
+			var steering = this.actuation(face, elapsed);
+			this.rotation = steering.rotation;
+			
+			var arrive = new ai.steering.Arrive(this.kinematics(), target);
+			var steering = this.actuation(arrive, elapsed);
+			this.velocity = steering.velocity;
+			
 			
 			this._super(elapsed);
 		},
