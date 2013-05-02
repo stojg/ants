@@ -9,14 +9,21 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 			args.max_acceleration = 0.1;
 			args.max_angular_velocity = 0.5;
 			args.max_angular_acceleration = 0.2;
+			args.type = 'ant';
 			this._super(args);
 		},
 				
 		update : function(elapsed) {
-			var target = new ai.steering.Kinematics({position: $V([250, 160])});
-			var behaviour = new ai.steering.Flee(this.kinematics(), target);
-			var steering = this.actuation(behaviour, elapsed);
-			this.velocity = steering.velocity;
+
+			var others = this.get_others('ant');
+
+			if(others.length > 1 ) {
+				var target = others.pop();
+				var behaviour = new ai.steering.Arrive(this.kinematics(), target.kinematics());
+				var steering = this.actuation(behaviour, elapsed);
+				this.velocity = steering.velocity;
+			}
+			
 			this._super(elapsed);
 		},
 

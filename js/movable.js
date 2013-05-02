@@ -19,6 +19,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 			
 			this.layer = args.layer;
 			this.static = args.static || false;
+			this.type = args.type || 'unknown';
 		},
 
 		update : function(elapsed) {
@@ -57,11 +58,22 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 					continue;
 				}
 				if(this.aabb_vs_aabb(object)) {
-					//console.log(this.cbox());
 					collisions.push(object);
 				}
 			}
 			return collisions;
+		},
+
+		get_others: function(type) {
+			var others = [];
+			for(key in this.layer.objects) {
+				var object = this.layer.objects[key];
+				if(object.name === this.name || object.type !== type) {
+					continue;
+				}
+				others.push(object);
+			}
+			return others;
 		},
 
 		aabb_vs_aabb : function(that) {
