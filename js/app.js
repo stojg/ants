@@ -40,7 +40,7 @@ define(["game", "ant"], function(Game){
 			engine.scenes.activateScene(scene);
 
 			layer.on('mouseup', function(args) {
-				layer.addNode(create_ant(args.position, [0, 0], 0, layer));
+				layer.addNode(create_ant(args.position, [0, 0], Math.random()*360, layer));
 			 });
 
 			engine.go(30, update);

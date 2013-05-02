@@ -11,6 +11,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			this.position = args.position || vec([0, 0]);
 			this.velocity = args.velocity || vec([0, 0]);
 			this.orientation = args.orientation || 0;
+			this.rotation = args.rotation || 0;
 			// speed / velocity limits
 			this.max_velocity = args.max_velocity || 0;
 			this.max_acceleration = args.max_acceleration || 0,
@@ -27,6 +28,9 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		},
 		acceleration: function() {
 			return this.linear;
+		},
+		rotation: function() {
+			return this.angular;
 		}
 	});
 	
@@ -107,17 +111,66 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			this.character = character;
 			this.target = target;
 			this.max_rotation = 0.2;
-			this.target_radius = 0.1;
-			this.slow_radius = 0.5;
+			this.target_radius = 5;
+			this.slow_radius = 20;
 			this.time_to_target = 0.1;
 		},
 		get: function() {
 			var steering = new ai.steering.Output();
 
 			var rotation = this.target.orientation - this.character.orientation;
+			
+			rotation = this.mapToRange(rotation);
+			var rotation_size = Math.abs(rotation);
 
+			if(rotation_size < this.target_radius) {
+				return steering;
+			}
+
+			var target_rotation = this.max_rotation;
+			if(rotation_size < this.slow_radius) {
+				target_rotation = this.max_rotation * rotation_size / this.slow_radius;
+			}
+			target_rotation *= rotation / rotation_size;
+
+			steering.angular = target_rotation - this.character.rotation;
+			steering.angular /= this.time_to_target;
+
+			var angular_acceleration = Math.abs(steering.angular);
+			if(angular_acceleration > this.character.max_angular_acceleration) {
+				
+				steering.angular /= angular_acceleration;
+				steering.angular *= this.character.max_angular_acceleration;
+			}
 			return steering;
+		},
+
+		mapToRange: function(rotation) {
+			if(Math.abs(rotation) > 180) {
+				if(rotation<0) {
+					rotation +=360;
+				} else {
+					rotation -= 360;
+				}
+			}
+			return rotation;
 		}
+	});
+	
+	ai.steering.Face = ai.steering.Align.extend({
+
+		get : function() {
+			var direction = this.target.position.subtract(this.character.position);
+			if(direction.length() === 0) {
+				return new ai.steering.Output;
+			}
+			var radians = Math.atan2(-direction.e(1), direction.e(2));
+			this.target.orientation = radians * 180 / Math.PI;
+			// I have a wicked coordinate system
+			this.target.orientation +=90;
+			return this._super();
+		}
+
 	});
 
 });

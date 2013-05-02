@@ -26,7 +26,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 			if(!this.static) {
 				this.move(elapsed);
 			}
-			if($V([this.velocity.x, this.velocity.y]).length()) {
+			if(!this.angular_velocity && $V([this.velocity.x, this.velocity.y]).length()) {
 				var radians = $V([1,0]).angle($V([this.velocity.x, this.velocity.y]));
 				this.rotation = radians * (180/Math.PI);
 			}
@@ -36,10 +36,9 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 		move : function(elapsed) {
 			this.position.x += this.velocity.x*(elapsed/1000);
 			this.position.y += this.velocity.y*(elapsed/1000);
-			
+
 			var collisions = this.get_collisions();
 			if(collisions.length === 0) {
-				
 				return;
 			}
 			
