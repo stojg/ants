@@ -5,7 +5,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 	ai = {};
 	ai.steering = ai.steering || {};
 
-	ai.steering.kinematics = Class.extend({
+	ai.steering.Kinematics = Class.extend({
 		init: function(args) {
 			this.position = args.position || vec([0, 0]);
 			this.velocity = args.velocity || vec([0, 0]);
@@ -15,7 +15,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		}
 	});
 
-	ai.steering.output = Class.extend({
+	ai.steering.Output = Class.extend({
 		init: function() {
 			this.linear = vec([0, 0]);
 			this.angular = 0;
@@ -28,13 +28,13 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		}
 	});
 	
-	ai.steering.seek = Class.extend({
+	ai.steering.Seek = Class.extend({
 		init: function(character, target) {
 			this.character = character;
 			this.target = target;
 		},
 		get: function() {
-			var steering = new ai.steering.output();
+			var steering = new ai.steering.Output();
 			steering.linear = this.target.position.subtract(this.character.position);
 			steering.linear = steering.linear.normalize(steering.linear);
 			// Give full acceleration
@@ -43,10 +43,10 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		}
 	});
 
-	ai.steering.flee = ai.steering.seek.extend({
+	ai.steering.Flee = ai.steering.Seek.extend({
 		
 		get: function() {
-			var steering = new ai.steering.output();
+			var steering = new ai.steering.Output();
 			steering.linear = this.character.position.subtract(this.target.position);
 			steering.linear = steering.linear.normalize(steering.linear);
 			// Give full acceleration
@@ -55,7 +55,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		}
 	});
 
-	ai.steering.arrive = Class.extend({
+	ai.steering.Arrive = Class.extend({
 		init: function(character, target) {
 			this.character = character;
 			this.target = target;
@@ -64,7 +64,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			this.timeToTarget = 0.25;
 		},
 		get: function() {
-			var steering = new ai.steering.output();
+			var steering = new ai.steering.Output();
 			var direction = this.target.position.subtract(this.character.position);
 			var distance = this.target.position.distanceFrom(this.character.position);
 
@@ -85,7 +85,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		}
 	});
 
-	ai.steering.align = Class.extend({
+	ai.steering.Align = Class.extend({
 		init: function(character, target) {
 			this.character = character;
 			this.target = target;
@@ -95,7 +95,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			this.time_to_target = 0.1;
 		},
 		get: function() {
-			var steering = new ai.steering.output();
+			var steering = new ai.steering.Output();
 
 			var rotation = this.target.orientation - this.character.orientation;
 

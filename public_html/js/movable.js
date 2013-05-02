@@ -129,7 +129,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 		},
 
 		kinematics : function() {
-			return new ai.steering.kinematics({
+			return new ai.steering.Kinematics({
 				position: $V([this.position.x, this.position.y]),
 				velocity: $V([this.velocity.x, this.velocity.y]),
 				orientation: this.rotation,
