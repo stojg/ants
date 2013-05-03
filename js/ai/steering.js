@@ -67,7 +67,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			this.target = target;
 			this.targetRadius = 6;
 			this.slow_radius = 20;
-			this.timeToTarget = 0.1;
+			this.time_to_target = 0.1;
 		},
 		get: function() {
 			var steering = new ai.steering.Output();
@@ -82,6 +82,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 
 			// Go max speed
 			var target_speed = this.character.max_velocity;
+			
 			// unless we're in the slowRadius
 			if(distance < this.slow_radius) {
 				target_speed = this.character.max_velocity * distance / this.slow_radius;
@@ -93,10 +94,9 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			targetVelocity = targetVelocity.multiply(target_speed);
 
 			// acceleration tries to get to the target velocity
-			
 			steering.linear = targetVelocity.subtract(this.character.velocity);
-			steering.linear = steering.linear.multiply(1/this.timeToTarget);
-			
+			// within the time to target
+			steering.linear = steering.linear.multiply(1/this.time_to_target);
 			if(steering.linear.length() > this.character.max_acceleration) {
 				steering.linear = steering.linear.normalize();
 				steering.linear = steering.linear.multiply(this.character.max_acceleration);
