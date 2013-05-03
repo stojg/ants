@@ -164,7 +164,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			}
 			var radians = Math.atan2(-direction.e(1), direction.e(2));
 			this.target.orientation = radians * 180 / Math.PI;
-			// I have a wicked coordinate system
+			// I have a wierd coordinate system, zero is that-a-way ->
 			this.target.orientation +=90;
 			return this._super();
 		}
@@ -174,7 +174,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		init: function(character, targets) {
 			this.character = character;
 			this.targets = targets;
-			this.threshold = 8;
+			this.threshold = 6;
 		},
 		get: function() {
 			var steering = new ai.steering.Output();
@@ -188,6 +188,43 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			};
 			return steering;
 		}
+	});
+
+	ai.steering.BlendedSteering = Class.extend({
+		init: function() {
+			this.behaviours = [];
+		},
+		push: function(behaviour, weight) {
+			this.behaviours.push([behaviour, weight]);
+		},
+		get: function() {
+			var steering = new ai.steering.Output();
+			for (var i = this.behaviours.length - 1; i >= 0; i--) {
+				var steer = this.behaviours[i][0].get();
+				steering.linear = steering.linear.add(steer.linear.multiply(this.behaviours[i][1]));
+				steering.angular = steer.angular * this.behaviours[i][1];
+			};
+			return steering;
+		},
+	});
+
+
+	ai.steering.PrioritySteering = Class.extend({
+		init: function() {
+			this.behaviours = [];
+		},
+		push: function(behaviour) {
+			this.behaviours.push(behaviour);
+		},
+		get: function() {
+			for(var i = 0; i < this.behaviours.length; i++) {
+				var steeringResult = this.behaviours[i].get();
+				if(steeringResult.linear.length() > 0 || steeringResult.angular !== 0) {
+					return steeringResult;
+				}
+			};
+			return new ai.steering.Output();
+		},
 	});
 
 });
