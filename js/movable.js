@@ -71,6 +71,18 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 			return others;
 		},
 
+		get_others_kinematic: function(type) {
+			var others = [];
+			for(key in this.layer.objects) {
+				var object = this.layer.objects[key];
+				if(object.name === this.name || object.type !== type) {
+					continue;
+				}
+				others.push(object.kinematics());
+			}
+			return others;
+		},
+
 		aabb_vs_aabb : function(that) {
 			return (Math.abs(this.cbox().x - that.cbox().x) * 2 < (this.cbox().w + that.cbox().w)) && (Math.abs(this.cbox().y - that.cbox().y) * 2 < (this.cbox().h + that.cbox().h));
 		},

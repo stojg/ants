@@ -157,7 +157,6 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 	});
 	
 	ai.steering.Face = ai.steering.Align.extend({
-
 		get : function() {
 			var direction = this.target.position.subtract(this.character.position);
 			if(direction.length() === 0) {
@@ -169,7 +168,26 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			this.target.orientation +=90;
 			return this._super();
 		}
+	});
 
+	ai.steering.Separation = Class.extend({
+		init: function(character, targets) {
+			this.character = character;
+			this.targets = targets;
+			this.threshold = 8;
+		},
+		get: function() {
+			var steering = new ai.steering.Output();
+			for (var i = this.targets.length - 1; i >= 0; i--) {
+				var direction = this.character.position.subtract(this.targets[i].position);
+				var distance =  direction.length();
+				if (distance < this.threshold) {
+					var strength = this.character.max_acceleration * (this.threshold - distance) / this.threshold;
+					steering.linear = steering.linear.add(direction.normalize().multiply(strength));
+				}
+			};
+			return steering;
+		}
 	});
 
 });
