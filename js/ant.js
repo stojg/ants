@@ -40,15 +40,16 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 			var new_velocity = $V([this.velocity.x, this.velocity.y]);
 
 			var velocity_change = output.acceleration().multiply(elapsed);
-			if(velocity_change.length() !== 0) {
-				new_velocity = new_velocity.add(velocity_change);
-				// trim to maximum speed
-				if(new_velocity.length() > this.max_velocity) {
-					new_velocity = new_velocity.normalize().multiply(this.max_velocity);
-				}
-			} else {
-				// brake!
-				new_velocity = new_velocity.multiply(0.80);
+
+			// if there are no acceleration, brake.
+			if(velocity_change.length() === 0) {
+				return new_velocity.multiply(0.80);
+			}
+
+			new_velocity = new_velocity.add(velocity_change);
+			// trim to maximum speed
+			if(new_velocity.length() > this.max_velocity) {
+				new_velocity = new_velocity.normalize().multiply(this.max_velocity);
 			}
 			
 			return new_velocity;
