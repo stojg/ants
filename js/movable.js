@@ -131,13 +131,14 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 				};
 			}
 
-			var top_right_x = this.size.x/2;
-			var bottom_right_x = this.size.x/2;
-			var top_right_y = -this.size.y;
+			var bottom_right_x = top_right_x = this.size.x/2;
 			var bottom_right_y = this.size.y;
+			var top_right_y = -this.size.y;
 
-			var sin_o = Math.sin(this.rotation * (Math.PI / 180));
-			var cos_o = Math.cos(this.rotation * (Math.PI / 180));
+			var radians = this.rotation * (Math.PI / 180);
+
+			var sin_o = Math.sin(radians);
+			var cos_o = Math.cos(radians);
 
 			var new_top_right_x = top_right_x * cos_o - top_right_y * sin_o;
 			var new_top_right_y = top_right_x * sin_o + top_right_y * cos_o;

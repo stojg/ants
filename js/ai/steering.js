@@ -7,6 +7,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 
 	ai.steering.Kinematics = Class.extend({
 		init: function(args) {
+			args = args || {};
 			// current state
 			this.position = args.position || vec([0, 0]);
 			this.velocity = args.velocity || vec([0, 0]);
@@ -187,6 +188,45 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 				}
 			};
 			return steering;
+		}
+	});
+
+	ai.steering.Wander = ai.steering.Face.extend({
+		init: function(character) {
+			this._super(character, new ai.steering.Kinematics());
+			// holds the radius and forward offset of the wander circle
+			this.wanderOffset = 50;
+			this.wanderRadius = 30;
+			// max change
+			this.wanderRate = 3;
+			this.wanderOrientation = 0;
+		},
+		get: function() {
+			// 1. Calculate the target to delegate to game.Face
+			// Update the wander orientation
+			this.wanderOrientation += (Math.random() - Math.random()) * this.wanderRate;
+			
+			// Calculate the center of the wander cirle
+			var target = this.character.position;
+			target = target.add($V([this.wanderOffset, this.wanderOffset]));
+			target = target.add(this.asVector(this.character.orientation));
+			
+			// Calculate the combined target orientation
+			var targetOrientation = this.wanderOrientation + this.character.orientation;
+			// Calculate the target location
+			var temp = this.asVector(targetOrientation).multiply(this.wanderRadius);
+			
+			this.target.position = target.add(temp);
+
+			// 2. Delegate to Face
+			var steering = this._super();
+			// 3. Now we set the linear acceleration
+			steering.linear = this.asVector(this.character.orientation).multiply(this.character.max_acceleration);
+			steering.angular = 0;
+			return steering;
+		},
+		asVector: function(orientation) {
+			return $V([Math.cos(orientation), Math.sin(orientation)]);
 		}
 	});
 

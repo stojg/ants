@@ -18,12 +18,11 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				position: $V([480, 160])
 			});
 
-			var arrive = new ai.steering.Arrive(this.kinematics(), target);
-			var separation = new ai.steering.Separation(this.kinematics(), this.get_others_kinematic('ant'));
-
 			var blended = new ai.steering.PrioritySteering();
-			blended.push(separation);
-			blended.push(arrive);
+
+			blended.push(new ai.steering.Separation(this.kinematics(), this.get_others_kinematic('ant')));
+			blended.push(new ai.steering.Wander(this.kinematics()));
+			//blended.push(new ai.steering.Arrive(this.kinematics(), target));
 
 			var steering = this.actuate(blended.get(), elapsed);
 			this.velocity = steering.velocity;
