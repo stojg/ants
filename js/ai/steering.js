@@ -19,6 +19,8 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			// rotation limits
 			this.max_angular_velocity = args.max_angular_velocity || 0;
 			this.max_angular_acceleration = args.max_angular_acceleration || 0;
+			this.radius = args.radius || 0;
+			this.name = args.name || '';
 		}
 	});
 
@@ -230,6 +232,95 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		}
 	});
 
+	ai.steering.CollisionAvoidance = Class.extend({
+		init: function(character, targets, o) {
+			this.character = character;
+			this.targets = targets;
+			this.radius = 10;
+		},
+		get: function() {
+
+			// 1. Find the target that's closest to collision
+			var shortestTime = 0.5;
+			var steering = new ai.steering.Output();
+
+			// Store the target that collides then, and other datea
+			// that we will need and can avoid recalc
+			var firstTarget = false;
+			var firstMinSeparation = false;
+			var firstDistance = false;
+			var firstRelativePos = false;
+			var firstRelativeVel = false;
+
+			// Loop through each target
+			for (var i = this.targets.length - 1; i >= 0; i--) {
+
+				var target = this.targets[i]
+				this.radius = target.radius + this.character.radius;
+
+				var relativePos = this.character.position.subtract(target.position);
+				var relativeVel = target.velocity.subtract(this.character.velocity);
+				var relativeSpeed = relativeVel.length();
+
+				var timeToCollision = relativePos.dot(relativeVel) / (relativeSpeed * relativeSpeed);
+				
+				// Check if it is going to be a collision at all
+				var distance = relativePos.length();
+
+				var minSeparation = distance - (relativeSpeed * shortestTime);
+				
+
+				if (minSeparation > 2 * this.radius) {
+					continue;
+				}
+
+				if (timeToCollision > 0 && timeToCollision < shortestTime) {
+					// Store the time, target and other data
+					shortestTime = timeToCollision;
+					firstTarget = target;
+					firstMinSeparation = minSeparation;
+					firstDistance = distance;
+					firstRelativePos = relativePos;
+					firstRelativeVel = relativeVel;
+				}
+			}
+
+			// 2. Calculate the steering
+
+			if (!firstTarget) {
+				return steering;
+			}
+
+			
+
+			// if we're going to hit exactly, or if we're already colliding,
+			// then do the steering based on current position
+			if (firstMinSeparation <= 0 || firstDistance < 2 * this.radius) {
+				relativePos = firstTarget.position.subtract(this.character.position);
+				
+			}
+			// otherwise calculate the future relative position
+			else {
+				relativePos = firstRelativePos.add(firstRelativeVel.multiply(shortestTime));
+			}
+
+
+			var flee_target = new ai.steering.Kinematics({
+					position: this.character.position.add(relativePos)
+			});
+
+			var st = new ai.steering.Flee(this.character, flee_target);
+			return st.get();
+
+			// Avoid the target
+			relativePos = relativePos.normalize();
+
+
+			steering.linear = relativePos.multiply(this.character.max_acceleration);
+			return steering;
+		}
+	});
+
 	ai.steering.BlendedSteering = Class.extend({
 		init: function() {
 			this.behaviours = [];
@@ -247,7 +338,6 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			return steering;
 		},
 	});
-
 
 	ai.steering.PrioritySteering = Class.extend({
 		init: function() {

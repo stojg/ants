@@ -164,10 +164,12 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 				position: $V([this.position.x, this.position.y]),
 				velocity: $V([this.velocity.x, this.velocity.y]),
 				orientation: this.rotation,
+				radius : Math.max(this.size.x, this.size.y)/2,
 				max_velocity: this.max_velocity,
 				max_acceleration: this.max_acceleration,
 				max_angular_velocity: this.max_angular_velocity,
-				max_angular_acceleration: this.max_angular_acceleration
+				max_angular_acceleration: this.max_angular_acceleration,
+				name: this.name
 			});
 		}
 	});

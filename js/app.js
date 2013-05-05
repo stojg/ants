@@ -32,7 +32,7 @@ define(["game", "ant"], function(Game){
 			layer.anchor = {x: 0, y: 0};
 			layer.addNode(create_home([160, 160], layer));
 			
-			layer.addNode(create_food([640, 300], layer));
+			layer.addNode(create_food([680, 100], layer));
 			layer.addNode(create_ant({x: 160, y:160}, [0, 0], Math.random()*360, layer));
 			//layer.addNode(create_ant({x: 40, y: 30}, [-1, 0], 180, layer));
 

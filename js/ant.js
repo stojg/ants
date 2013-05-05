@@ -148,6 +148,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 		update : function(elapsed) {
 
 			var blended = new ai.steering.PrioritySteering();
+			blended.push(new ai.steering.CollisionAvoidance(this.kinematics(), this.get_others_kinematic('ant')));
 			blended.push(new ai.steering.Separation(this.kinematics(), this.get_others_kinematic('ant')));
 
 			var actions = this.statemachine.update();
@@ -164,11 +165,8 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				var target = homes[0].kinematics();
 				blended.push(new ai.steering.Arrive(this.kinematics(), target));
 			} else {
-				console.log(actions);
+				//console.log(actions);
 			}
-
-
-			
 
 			var steering = this.actuate(blended.get(), elapsed);
 			this.velocity = steering.velocity;
