@@ -1,5 +1,130 @@
 define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, Movable) {
 
+	var transition_found_food = Class.extend({
+		init: function(ant) {
+			this.ant = ant;
+		},
+		is_triggered: function() {
+			var food_items = this.ant.get_others('food');
+			for(key in food_items) {
+				var distance = food_items[key].kinematics().position.distanceFrom(this.ant.kinematics().position);
+				if(distance < 8) {
+					return true;
+				}
+			}
+			return false;
+		},
+		get_target_state: function() {
+			return new state_pickup_food(this.ant);
+		},
+		get_action: function() {
+			return 'found_food_action';
+		}
+	});
+
+	var transition_carries_food = Class.extend({
+		init: function(ant) {
+			this.ant = ant;
+		},
+		is_triggered: function() {
+			return this.ant.carries('food');
+		},
+		get_target_state: function() {
+			return new state_go_home(this.ant);
+		},
+		get_action: function() {
+			return 'have_food_action';
+		}
+	});
+	
+	var transition_is_home = Class.extend({
+		init: function(ant) {
+			this.ant = ant;
+		},
+		is_triggered: function() {
+
+			var food_items = this.ant.get_others('home');
+			for(key in food_items) {
+				var distance = food_items[key].kinematics().position.distanceFrom(this.ant.kinematics().position);
+				if(distance < 10) {
+					return true;
+				}
+			}
+			return false;
+			
+		},
+		get_target_state: function() {
+			return new state_find_food(this.ant);
+		},
+		get_action: function() {
+			return 'is_home_action';
+		}
+	});
+
+	var state_pickup_food = Class.extend({
+		init: function(ant) {
+			this.ant = ant;
+		},
+		get_entry_action: function() {
+			return 'starting_pickup_food_action';
+		},
+		get_action: function() {
+			return 'pickup_food_action';
+		},
+		get_exit_action: function() {
+			return 'exiting_pickup_food_action';
+		},
+		get_transitions: function() {
+			return [
+				new transition_carries_food(this.ant)
+			];
+		}
+	});
+
+	var state_find_food = Class.extend({
+		init: function(ant) {
+			this.ant = ant;
+		},
+		get_entry_action: function() {
+			return 'starting_seek_food_action';
+		},
+
+		get_action: function() {
+			return 'seek_food_action';
+		},
+
+		get_exit_action: function() {
+			return 'exiting_seek_food_action';
+		},
+
+		get_transitions: function() {
+			return [
+				new transition_found_food(this.ant)
+			];
+		}
+	});
+
+	var state_go_home = Class.extend({
+		init: function(ant) {
+			this.ant = ant;
+		},
+		get_entry_action: function() {
+			return 'starting_seek_home_action';
+		},
+		get_action: function() {
+			return 'seek_home_action';
+		},
+		get_exit_action: function() {
+			return 'exiting_seek_home_action';
+		},
+		get_transitions: function() {
+			return [
+				new transition_is_home(this.ant)
+			];
+		}
+	});
+
+
 	Ant = Movable.extend({
 		init : function(args) {
 			args = args || {};
@@ -11,18 +136,39 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 			args.max_angular_acceleration = 0.2;
 			args.type = 'ant';
 			this._super(args);
+
+			this.inventory = false;
+			this.statemachine = new ai.state.Machine(new state_find_food(this));
+		},
+
+		carries: function(what) {
+			return this.inventory;
 		},
 				
 		update : function(elapsed) {
-			var target = new ai.steering.Kinematics({
-				position: $V([480, 160])
-			});
 
 			var blended = new ai.steering.PrioritySteering();
-
 			blended.push(new ai.steering.Separation(this.kinematics(), this.get_others_kinematic('ant')));
-			blended.push(new ai.steering.Wander(this.kinematics()));
-			//blended.push(new ai.steering.Arrive(this.kinematics(), target));
+
+			var actions = this.statemachine.update();
+			if(actions.indexOf('seek_food_action') >= 0) {
+				var foods = this.get_others('food')
+				var target = foods[0].kinematics();
+				blended.push(new ai.steering.Arrive(this.kinematics(), target));
+			} else if(actions.indexOf('pickup_food_action') >= 0) {
+				this.inventory = true;
+			} else if(actions.indexOf('drop_food_action') >= 0) {
+				this.inventory = false;
+			} else if(actions.indexOf('seek_home_action') >= 0) {
+				var homes = this.get_others('home');
+				var target = homes[0].kinematics();
+				blended.push(new ai.steering.Arrive(this.kinematics(), target));
+			} else {
+				console.log(actions);
+			}
+
+
+			
 
 			var steering = this.actuate(blended.get(), elapsed);
 			this.velocity = steering.velocity;

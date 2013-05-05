@@ -15,30 +15,24 @@ define(["game", "ant"], function(Game){
 			
 			var bg = new pulse.Sprite({
 				src: 'img/textures/grass/grass07.png',
-				name: 'background',
 			});
-
-			bg.size = {width: Game.world.width , height: Game.world.height};
-
-			bg.position = {
-				x: Math.round(Game.world.width / 2),
-				y: Math.round(Game.world.height / 2)
-			};
-			
-			
+			bg.size = {width: 512 , height: 512};
+			bg.position = {x: 256,y: 256};
 			bg_layer.addNode(bg);
-			bg_layer.addNode(create_home([160, 160], layer));
-
-
-
+			var bg2 = new pulse.Sprite({
+				src: 'img/textures/grass/grass07.png',
+			});
+			bg2.size = {width: 512 , height: 512};
+			bg2.position = {x: 768,y: 256};
+			bg_layer.addNode(bg2);
 
 			// Create a layer and add it to the scene.
 			var layer = new pulse.Layer();
 			layer.position = {x: 0, y: 0};
 			layer.anchor = {x: 0, y: 0};
+			layer.addNode(create_home([160, 160], layer));
 			
-			
-			layer.addNode(create_food([640, 160], layer));
+			layer.addNode(create_food([640, 300], layer));
 			layer.addNode(create_ant({x: 160, y:160}, [0, 0], Math.random()*360, layer));
 			//layer.addNode(create_ant({x: 40, y: 30}, [-1, 0], 180, layer));
 
