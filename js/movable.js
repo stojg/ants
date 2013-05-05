@@ -32,6 +32,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 		move : function(elapsed) {
 			this.position.x += this.velocity.x*(elapsed/1000);
 			this.position.y += this.velocity.y*(elapsed/1000);
+			this._cbox = false;
 
 			var collisions = this.get_collisions();
 			if(collisions.length === 0) {
@@ -124,8 +125,12 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
         },
 				
 		cbox : function() {
+
+			if(this._cbox) {
+				return this._cbox;
+			}
 			if(this.rotation === 0) {
-				return {
+				return this._cbox = {
 					x: this.position.x, y: this.position.y,
 					w: this.size.x, h: this.size.y
 				};
@@ -148,7 +153,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 			var half_width = Math.max(Math.abs(new_top_right_x), Math.abs(new_bottom_right_x));
 			var half_height = Math.max(Math.abs(new_top_right_y), Math.abs(new_bottom_right_y));
 
-			return {
+			return this._cbox = {
 				x: this.position.x, y: this.position.y,
 				w: half_width*2, h: half_height*2
 			};

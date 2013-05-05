@@ -8,12 +8,38 @@ define(["game", "ant"], function(Game){
 			Game.world.height = 32*10;
 			var engine = Game.init('game-world');
 
+			var bg_layer = new pulse.Layer();
+			
+			bg_layer.position = {x: 0, y: 0};
+			bg_layer.anchor = {x: 0, y: 0};
+			
+			var bg = new pulse.Sprite({
+				src: 'img/textures/grass/grass07.png',
+				name: 'background',
+			});
+
+			bg.size = {width: Game.world.width , height: Game.world.height};
+
+			bg.position = {
+				x: Math.round(Game.world.width / 2),
+				y: Math.round(Game.world.height / 2)
+			};
+			
+			
+			bg_layer.addNode(bg);
+			bg_layer.addNode(create_home([160, 160], layer));
+
+
+
+
 			// Create a layer and add it to the scene.
 			var layer = new pulse.Layer();
 			layer.position = {x: 0, y: 0};
 			layer.anchor = {x: 0, y: 0};
 			
-			//layer.addNode(create_ant({x: 160, y:160}, [1, 0], 0, layer));
+			
+			layer.addNode(create_food([640, 160], layer));
+			layer.addNode(create_ant({x: 160, y:160}, [0, 0], Math.random()*360, layer));
 			//layer.addNode(create_ant({x: 40, y: 30}, [-1, 0], 180, layer));
 
 			//layer.addNode(create_ant({x: 20, y: 40}, [15, 0], 0, layer));
@@ -34,6 +60,7 @@ define(["game", "ant"], function(Game){
 			
 			// Create a scene.
 			var scene = new pulse.Scene();
+			scene.addLayer(bg_layer);
 			scene.addLayer(layer);
 
 			engine.scenes.addScene(scene);
@@ -78,8 +105,34 @@ define(["game", "ant"], function(Game){
 			static: true
 		});
 	}
+
+	var create_home = function(position, layer) {
+		var home = new pulse.Texture({filename: 'img/home.png'});
+		return new Movable({
+			src: home,
+			position: {x:position[0], y:position[1]},
+			layer: layer,
+			size: {x: 10, y: 10},
+			static: true,
+			type: 'home'
+		});
+	}
+
+	var create_food = function(position, layer) {
+		var food = new pulse.Texture({filename: 'img/food.png'});
+		return new Movable({
+			src: food,
+			position: {x:position[0], y:position[1]},
+			layer: layer,
+			size: {x: 4, y: 4},
+			static: true,
+			type: 'food'
+		});
+	}
 	
-	var update = function(elapsed) {}
+	var update = function(elapsed) {
+		
+	}
 
 	return {
 		init: init

@@ -195,7 +195,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		init: function(character) {
 			this._super(character, new ai.steering.Kinematics());
 			// holds the radius and forward offset of the wander circle
-			this.wanderOffset = 50;
+			this.wanderOffset = 80;
 			this.wanderRadius = 30;
 			// max change
 			this.wanderRate = 3;
