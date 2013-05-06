@@ -129,8 +129,8 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 		init : function(args) {
 			args = args || {};
 			args.src = new pulse.Texture({filename: 'img/ant3.png'});
-			args.size = {x: 4, y: 2};
 			args.size = { width: 7, height: 5 };
+			args.collision = { width: 5, height: 3 };
 			args.max_velocity = 60;
 			args.max_acceleration = 0.2;
 			args.max_angular_velocity = 0.5;

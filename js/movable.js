@@ -1,4 +1,4 @@
-define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
+define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 
 	Movable = pulse.Sprite.extend({
 
@@ -9,7 +9,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 			this.position = args.position || {x: 0, y: 0};
 			this.velocity = args.velocity || {x: 0, y: 0};
 			this.max_acceleration = args.max_acceleration || 0;
-
+			this.collision = args.collision || args.size;
 			this.rotation = args.rotation || 0;
 			this.angular_velocity = args.angular_velocity || 0;
 			this.max_angular_acceleration = args.max_angular_acceleration || 0;
@@ -32,7 +32,6 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 		move : function(elapsed) {
 			this.position.x += this.velocity.x*(elapsed/1000);
 			this.position.y += this.velocity.y*(elapsed/1000);
-			this._cbox = false;
 
 			var collisions = this.get_collisions();
 			if(collisions.length === 0) {
@@ -85,15 +84,15 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 		},
 
 		aabb_vs_aabb : function(that) {
-			return (Math.abs(this.cbox().x - that.cbox().x) * 2 < (this.cbox().w + that.cbox().w)) && (Math.abs(this.cbox().y - that.cbox().y) * 2 < (this.cbox().h + that.cbox().h));
+			return (Math.abs(this.cbox().x - that.cbox().x) * 2 < (this.cbox().width + that.cbox().width)) && (Math.abs(this.cbox().y - that.cbox().y) * 2 < (this.cbox().height + that.cbox().height));
 		},
 		
 		minimumTranslation: function(that) {
-            var amin = [this.cbox().x - this.cbox().w/2, this.cbox().y - this.cbox().h/2];
-			var bmin = [that.cbox().x - that.cbox().w/2, that.cbox().y - that.cbox().h/2];
+            var amin = [this.cbox().x - this.cbox().width/2, this.cbox().y - this.cbox().height/2];
+			var bmin = [that.cbox().x - that.cbox().width/2, that.cbox().y - that.cbox().height/2];
 
-			var bmax = [that.cbox().x + that.cbox().w/2, that.cbox().y + that.cbox().h/2];
-            var amax = [this.cbox().x + this.cbox().w/2, this.cbox().y + this.cbox().h/2];
+			var bmax = [that.cbox().x + that.cbox().width/2, that.cbox().y + that.cbox().height/2];
+            var amax = [this.cbox().x + this.cbox().width/2, this.cbox().y + this.cbox().height/2];
 
             var mtd = [0,0];
 
@@ -126,19 +125,16 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 				
 		cbox : function() {
 
-			if(this._cbox) {
-				return this._cbox;
-			}
 			if(this.rotation === 0) {
-				return this._cbox = {
+				return {
 					x: this.position.x, y: this.position.y,
-					w: this.size.x, h: this.size.y
+					width: this.collision.width, height: this.collision.height
 				};
 			}
 
-			var bottom_right_x = top_right_x = this.size.x/2;
-			var bottom_right_y = this.size.y;
-			var top_right_y = -this.size.y;
+			var bottom_right_x = top_right_x = this.collision.width/2;
+			var bottom_right_y = this.collision.height;
+			var top_right_y = -this.collision.height;
 
 			var radians = this.rotation * (Math.PI / 180);
 
@@ -153,9 +149,9 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 			var half_width = Math.max(Math.abs(new_top_right_x), Math.abs(new_bottom_right_x));
 			var half_height = Math.max(Math.abs(new_top_right_y), Math.abs(new_bottom_right_y));
 
-			return this._cbox = {
+			return {
 				x: this.position.x, y: this.position.y,
-				w: half_width*2, h: half_height*2
+				width: half_width*2, height: half_height*2
 			};
 		},
 
@@ -164,7 +160,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, vec) {
 				position: $V([this.position.x, this.position.y]),
 				velocity: $V([this.velocity.x, this.velocity.y]),
 				orientation: this.rotation,
-				radius : Math.max(this.size.x, this.size.y)/2,
+				radius : Math.max(this.collision.x, this.collision.y)/2,
 				max_velocity: this.max_velocity,
 				max_acceleration: this.max_acceleration,
 				max_angular_velocity: this.max_angular_velocity,

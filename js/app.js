@@ -35,19 +35,8 @@ define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, Priority
 			
 			layer.addNode(create_food([680, 100], layer));
 			layer.addNode(create_ant({x: 160, y:160}, [0, 0], Math.random()*360, layer));
-			//layer.addNode(create_ant({x: 40, y: 30}, [-1, 0], 180, layer));
 
-			//layer.addNode(create_ant({x: 20, y: 40}, [15, 0], 0, layer));
-			//layer.addNode(create_ant({x: 40, y: 40}, [10, 0],  0, layer));
-
-			//layer.addNode(create_ant({x: 60, y: 20}, [0, 5],  90, layer));
-			//layer.addNode(create_ant({x: 60, y: 40}, [0, -5], 270, layer));
-
-			//layer.addNode(create_ant({x: 60, y: 60}, [5, 5], 45, layer));
-			//layer.addNode(create_ant({x: 80, y: 80}, [-5, -5], 225, layer));
-
-			//layer.addNode(create_ant({x: 20, y: 20}, [0, -10], 270, layer));
-
+			layer.addNode(create_stone([360,130], layer));
 			layer.addNode(create_vertical_wall([1,160], layer));
 			layer.addNode(create_vertical_wall([960,160], layer));
 			layer.addNode(create_horizontal_wall([480,0], layer));
@@ -80,25 +69,36 @@ define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, Priority
 		});
 	};
 
-	var create_horizontal_wall = function(position, layer) {
-		var vertical_wall = new pulse.Texture({filename: 'img/horizontal.png'});
+	var create_stone = function(position, layer) {
 		return new Movable({
-			src: vertical_wall,
+			src: 'img/stone.png',
+			position: {x:position[0], y:position[1]},
+			layer: layer,
+			size: {x: 20, y: 20},
+			static: true,
+			type: 'obstacle'
+		});
+	}
+
+	var create_horizontal_wall = function(position, layer) {
+		return new Movable({
+			src: 'img/horizontal.png',
 			position: {x:position[0], y:position[1]},
 			layer: layer,
 			size: {x: 960, y: 1},
-			static: true
+			static: true,
+			type: 'wall'
 		});
 	}
 
 	var create_vertical_wall = function(position, layer) {
-		var vertical_wall = new pulse.Texture({filename: 'img/vertical.png'});
 		return new Movable({
-			src: vertical_wall,
+			src: 'img/vertical.png',
 			position: {x:position[0], y:position[1]},
 			layer: layer,
 			size: {x: 1, y: 360},
-			static: true
+			static: true,
+			type: 'wall'
 		});
 	}
 
@@ -141,7 +141,6 @@ define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, Priority
 			}
 			
 		}
-
 		//console.log(queue.getHighestPriorityElement());
 	}
 
