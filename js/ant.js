@@ -128,14 +128,69 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 	Ant = Movable.extend({
 		init : function(args) {
 			args = args || {};
-			args.src = new pulse.Texture({filename: 'img/ant2.png'});
+			args.src = new pulse.Texture({filename: 'img/ant3.png'});
 			args.size = {x: 4, y: 2};
+			args.size = { width: 7, height: 5 };
 			args.max_velocity = 60;
-			args.max_acceleration = 0.1;
+			args.max_acceleration = 0.2;
 			args.max_angular_velocity = 0.5;
 			args.max_angular_acceleration = 0.2;
 			args.type = 'ant';
 			this._super(args);
+
+			var idle = new pulse.AnimateAction({
+				name: 'idle',
+				size : { width:7, height:5 },
+				bounds : { width: 28, height:5},
+				frames : [0],
+				frameRate : 1 /* FPS */
+			});
+			this.addAction(idle);
+
+			var walking = new pulse.AnimateAction({
+				name: 'walking',
+				size : { width:7, height:5 },
+				bounds : { width: 28, height:5},
+				frames : [0,1],
+				frameRate : 5 /* FPS */
+			});
+			this.addAction(walking);
+
+			var running = new pulse.AnimateAction({
+				name: 'running',
+				size : { width:7, height:5 },
+				bounds : { width: 28, height:5},
+				frames : [0,1],
+				frameRate : 10 /* FPS */
+			});
+			this.addAction(running);
+
+			var idle_food = new pulse.AnimateAction({
+				name: 'idle_food',
+				size : { width:7, height:4 },
+				bounds : { width: 7, height:5},
+				frames : [3],
+				frameRate : 5 /* FPS */
+			});
+			this.addAction(idle_food);
+
+			var walking_food = new pulse.AnimateAction({
+				name: 'walking_food',
+				size : { width:7, height:4 },
+				bounds : { width: 7, height:5},
+				frames : [3],
+				frameRate : 5 /* FPS */
+			});
+			this.addAction(walking_food);
+
+			var running_food = new pulse.AnimateAction({
+				name: 'running_food',
+				size : { width:7, height:4 },
+				bounds : { width: 7, height:5},
+				frames : [3],
+				frameRate : 10 /* FPS */
+			});
+			this.addAction(running_food);
 
 			this.inventory = false;
 			this.statemachine = new ai.state.Machine(new state_find_food(this));
@@ -158,7 +213,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				blended.push(new ai.steering.Arrive(this.kinematics(), target));
 			} else if(actions.indexOf('pickup_food_action') >= 0) {
 				this.inventory = true;
-			} else if(actions.indexOf('drop_food_action') >= 0) {
+			} else if(actions.indexOf('is_home_action') >= 0) {
 				this.inventory = false;
 			} else if(actions.indexOf('seek_home_action') >= 0) {
 				var homes = this.get_others('home');
@@ -169,6 +224,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 			}
 
 			var steering = this.actuate(blended.get(), elapsed);
+			this.animate();
 			this.velocity = steering.velocity;
 			this.rotation = steering.rotation;
 			this._super(elapsed);
@@ -212,6 +268,44 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				return radians * (180/Math.PI);
 			}
 			return this.rotation + output.rotation()*elapsed;
+		},
+
+		previousAnimation : '',
+		currentAnimation: '',
+
+		animate: function() {
+			var speed = $V([this.velocity.x, this.velocity.y]).length();
+
+			if(speed > this.max_velocity/2) {
+				if(this.carries('food')) {
+					this.currentAnimation = 'running_food';
+				} else {
+					this.currentAnimation = 'running';
+				}
+				
+			} else if (speed > 0 ) {
+				if(this.carries('food')) {
+					this.currentAnimation = 'walking_food';
+				} else {
+					this.currentAnimation = 'walking';
+				}
+			} else {
+				if(this.carries('food')) {
+					this.currentAnimation = 'idle_food';
+				} else {
+					this.currentAnimation = 'idle';
+				}
+			}
+
+			if(this.currentAnimation !== this.previousAnimation) {
+				var actions = this.runningActions;
+				for(key in actions) {
+
+					actions[key].stop();
+				}
+				this.runAction(this.currentAnimation);
+				this.previousAnimation = this.currentAnimation;
+			}
 		}
 	});
 	
