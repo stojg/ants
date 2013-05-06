@@ -1,4 +1,4 @@
-define(["game", "ant"], function(Game){
+define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, PriorityQueue){
 
 	var init = function() {
 
@@ -6,7 +6,7 @@ define(["game", "ant"], function(Game){
 			
 			Game.world.width = 96*10;
 			Game.world.height = 32*10;
-			var engine = Game.init('game-world');
+			window.engine = Game.init('game-world');
 
 			var bg_layer = new pulse.Layer();
 			
@@ -30,6 +30,7 @@ define(["game", "ant"], function(Game){
 			var layer = new pulse.Layer();
 			layer.position = {x: 0, y: 0};
 			layer.anchor = {x: 0, y: 0};
+			layer.name = 'action';
 			layer.addNode(create_home([160, 160], layer));
 			
 			layer.addNode(create_food([680, 100], layer));
@@ -56,15 +57,16 @@ define(["game", "ant"], function(Game){
 			var scene = new pulse.Scene();
 			scene.addLayer(bg_layer);
 			scene.addLayer(layer);
+			scene.name = 'main';
 
-			engine.scenes.addScene(scene);
-			engine.scenes.activateScene(scene);
+			window.engine.scenes.addScene(scene);
+			window.engine.scenes.activateScene(scene);
 
 			layer.on('mouseup', function(args) {
 				layer.addNode(create_ant(args.position, [0, 0], Math.random()*360, layer));
 			 });
 
-			engine.go(30, update);
+			window.engine.go(30, update);
 		});
 	};
 
@@ -125,7 +127,22 @@ define(["game", "ant"], function(Game){
 	}
 	
 	var update = function(elapsed) {
-		
+		var main_scene = window.engine.scenes.getScene('main');
+		var action_layer = main_scene.getLayer('action');
+		var nodes = action_layer.getNodesByType(pulse.Sprite);
+
+		//console.log(typeof nodes);
+		var queue = new PriorityQueue('position', PriorityQueue.MAX_HEAP);
+
+		for(key in nodes) {
+			if(typeof nodes[key] !== 'undefined') {
+
+				//queue.insert(nodes[key]);
+			}
+			
+		}
+
+		//console.log(queue.getHighestPriorityElement());
 	}
 
 	return {

@@ -241,7 +241,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		get: function() {
 
 			// 1. Find the target that's closest to collision
-			var shortestTime = 0.5;
+			var shortestTime = 0.45;
 			var steering = new ai.steering.Output();
 
 			// Store the target that collides then, and other datea
