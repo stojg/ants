@@ -59,13 +59,13 @@ define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, Priority
 		});
 	};
 
-	var create_ant = function (position, velocity, rotation, layer, dead) {
+	var create_ant = function (position, velocity, rotation, layer) {
 		return new Ant({
 			position: position,
 			layer: layer,
 			velocity: {x: velocity[0], y:velocity[1]},
 			rotation: rotation,
-			static: dead
+			static: false
 		});
 	};
 
@@ -110,6 +110,7 @@ define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, Priority
 			layer: layer,
 			size: {x: 10, y: 10},
 			static: true,
+			collidable: false,
 			type: 'home'
 		});
 	}
@@ -122,6 +123,7 @@ define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, Priority
 			layer: layer,
 			size: {x: 4, y: 4},
 			static: true,
+			collidable: false,
 			type: 'food'
 		});
 	}

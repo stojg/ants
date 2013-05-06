@@ -124,7 +124,6 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 		}
 	});
 
-
 	Ant = Movable.extend({
 		init : function(args) {
 			args = args || {};

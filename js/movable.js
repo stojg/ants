@@ -5,10 +5,16 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 		init : function(args) {
 			args = args || {};
 			this._super(args);
-			
+
 			this.position = args.position || {x: 0, y: 0};
 			this.velocity = args.velocity || {x: 0, y: 0};
 			this.max_acceleration = args.max_acceleration || 0;
+			
+			if(typeof args.collidable !=='undefined') {
+				this.collidable = args.collidable;
+			} else {
+				this.collidable = true;
+			}
 			this.collision = args.collision || args.size;
 			this.rotation = args.rotation || 0;
 			this.angular_velocity = args.angular_velocity || 0;
@@ -50,6 +56,9 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 			for(key in this.layer.objects) {
 				var object = this.layer.objects[key];
 				if(object.name === this.name) {
+					continue;
+				}
+				if(object.collidable === false) {
 					continue;
 				}
 				if(this.aabb_vs_aabb(object)) {
