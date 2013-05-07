@@ -21,6 +21,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			this.max_angular_acceleration = args.max_angular_acceleration || 0;
 			this.radius = args.radius || 0;
 			this.name = args.name || '';
+			this.type = args.type || 'undefined';
 		}
 	});
 
@@ -53,7 +54,6 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 	});
 
 	ai.steering.Flee = ai.steering.Seek.extend({
-		
 		get: function() {
 			var steering = new ai.steering.Output();
 			steering.linear = this.character.position.subtract(this.target.position);
@@ -163,7 +163,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		get : function() {
 			var direction = this.target.position.subtract(this.character.position);
 			if(direction.length() === 0) {
-				return new ai.steering.Output;
+				return new ai.steering.Output();
 			}
 			var radians = Math.atan2(-direction.e(1), direction.e(2));
 			this.target.orientation = radians * 180 / Math.PI;
@@ -188,7 +188,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 					var strength = this.character.max_acceleration * (this.threshold - distance) / this.threshold;
 					steering.linear = steering.linear.add(direction.normalize().multiply(strength));
 				}
-			};
+			}
 			return steering;
 		}
 	});
@@ -236,7 +236,6 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 		init: function(character, targets, o) {
 			this.character = character;
 			this.targets = targets;
-			this.radius = 10;
 		},
 		get: function() {
 
@@ -251,12 +250,12 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 			var firstDistance = false;
 			var firstRelativePos = false;
 			var firstRelativeVel = false;
-
+			var firstRadius = 0;
 			// Loop through each target
 			for (var i = this.targets.length - 1; i >= 0; i--) {
 
-				var target = this.targets[i]
-				this.radius = target.radius + this.character.radius;
+				var target = this.targets[i];
+				var radius = target.radius + this.character.radius;
 
 				var relativePos = this.character.position.subtract(target.position);
 				var relativeVel = target.velocity.subtract(this.character.velocity);
@@ -268,12 +267,11 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 				var distance = relativePos.length();
 
 				var minSeparation = distance - (relativeSpeed * shortestTime);
-				
 
-				if (minSeparation > 2 * this.radius) {
+				if (minSeparation > radius) {
 					continue;
 				}
-
+				
 				if (timeToCollision > 0 && timeToCollision < shortestTime) {
 					// Store the time, target and other data
 					shortestTime = timeToCollision;
@@ -282,42 +280,32 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 					firstDistance = distance;
 					firstRelativePos = relativePos;
 					firstRelativeVel = relativeVel;
+					firstRadius = radius;
 				}
 			}
 
 			// 2. Calculate the steering
-
 			if (!firstTarget) {
 				return steering;
 			}
 
-			
-
+			var targetRelativePos = $V([0,0]);
 			// if we're going to hit exactly, or if we're already colliding,
 			// then do the steering based on current position
-			if (firstMinSeparation <= 0 || firstDistance < 2 * this.radius) {
-				relativePos = firstTarget.position.subtract(this.character.position);
-				
+			if (firstMinSeparation <= 0 || firstDistance < firstRadius) {
+				targetRelativePos = firstTarget.position.subtract(this.character.position);
 			}
 			// otherwise calculate the future relative position
 			else {
-				relativePos = firstRelativePos.add(firstRelativeVel.multiply(shortestTime));
+				targetRelativePos = firstRelativePos.add(firstRelativeVel.multiply(shortestTime));
 			}
-
-
+			
 			var flee_target = new ai.steering.Kinematics({
-					position: this.character.position.add(relativePos)
+				position: this.character.position.add(targetRelativePos)
 			});
 
 			var st = new ai.steering.Flee(this.character, flee_target);
 			return st.get();
-
-			// Avoid the target
-			relativePos = relativePos.normalize();
-
-
-			steering.linear = relativePos.multiply(this.character.max_acceleration);
-			return steering;
 		}
 	});
 
@@ -334,9 +322,9 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 				var steer = this.behaviours[i][0].get();
 				steering.linear = steering.linear.add(steer.linear.multiply(this.behaviours[i][1]));
 				steering.angular = steer.angular * this.behaviours[i][1];
-			};
+			}
 			return steering;
-		},
+		}
 	});
 
 	ai.steering.PrioritySteering = Class.extend({
@@ -352,9 +340,9 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 				if(steeringResult.linear.length() > 0 || steeringResult.angular !== 0) {
 					return steeringResult;
 				}
-			};
+			}
 			return new ai.steering.Output();
-		},
+		}
 	});
 
 	ai.state = {};

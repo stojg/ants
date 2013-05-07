@@ -53,7 +53,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 		
 		get_collisions : function() {
 			var collisions = [];
-			for(key in this.layer.objects) {
+			for(var key in this.layer.objects) {
 				var object = this.layer.objects[key];
 				if(object.name === this.name) {
 					continue;
@@ -70,7 +70,7 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 
 		get_others: function(type) {
 			var others = [];
-			for(key in this.layer.objects) {
+			for(var key in this.layer.objects) {
 				var object = this.layer.objects[key];
 				if(object.name === this.name || object.type !== type) {
 					continue;
@@ -82,9 +82,18 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 
 		get_others_kinematic: function(type) {
 			var others = [];
-			for(key in this.layer.objects) {
+			for(var key in this.layer.objects) {
 				var object = this.layer.objects[key];
-				if(object.name === this.name || object.type !== type) {
+				if(object.name === this.name) {
+					continue;
+				}
+				if(object.type === 'wall') {
+					continue;
+				}
+				if(object.type === 'home') {
+					continue;
+				}
+				if(object.type === 'food') {
 					continue;
 				}
 				others.push(object.kinematics());
@@ -141,7 +150,8 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 				};
 			}
 
-			var bottom_right_x = top_right_x = this.collision.width/2;
+			var bottom_right_x = this.collision.width/2;
+			var top_right_x = bottom_right_x;
 			var bottom_right_y = this.collision.height;
 			var top_right_y = -this.collision.height;
 
@@ -169,12 +179,13 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 				position: $V([this.position.x, this.position.y]),
 				velocity: $V([this.velocity.x, this.velocity.y]),
 				orientation: this.rotation,
-				radius : Math.max(this.collision.x, this.collision.y)/2,
+				radius : Math.max(this.collision.width, this.collision.height)/2,
 				max_velocity: this.max_velocity,
 				max_acceleration: this.max_acceleration,
 				max_angular_velocity: this.max_angular_velocity,
 				max_angular_acceleration: this.max_angular_acceleration,
-				name: this.name
+				name: this.name,
+				type: this.type
 			});
 		}
 	});

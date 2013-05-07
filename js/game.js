@@ -6,7 +6,7 @@ define(['movable', 'pulse'], function(Movable) {
 
 	game.collision = function(object) {
 		return false;
-	}
+	};
 
 	game.init = function(canvasID) {
 		// Create an engine.
@@ -16,7 +16,7 @@ define(['movable', 'pulse'], function(Movable) {
 		});
 
 		return engine;
-	}
+	};
 
 	return game;
 });

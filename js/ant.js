@@ -6,7 +6,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 		},
 		is_triggered: function() {
 			var food_items = this.ant.get_others('food');
-			for(key in food_items) {
+			for(var key in food_items) {
 				var distance = food_items[key].kinematics().position.distanceFrom(this.ant.kinematics().position);
 				if(distance < 8) {
 					return true;
@@ -44,7 +44,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 		is_triggered: function() {
 
 			var food_items = this.ant.get_others('home');
-			for(key in food_items) {
+			for(var key in food_items) {
 				var distance = food_items[key].kinematics().position.distanceFrom(this.ant.kinematics().position);
 				if(distance < 10) {
 					return true;
@@ -142,7 +142,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				size : { width:7, height:5 },
 				bounds : { width: 28, height:5},
 				frames : [0],
-				frameRate : 1 /* FPS */
+				frameRate : 1
 			});
 			this.addAction(idle);
 
@@ -151,7 +151,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				size : { width:7, height:5 },
 				bounds : { width: 28, height:5},
 				frames : [0,1],
-				frameRate : 5 /* FPS */
+				frameRate : 5
 			});
 			this.addAction(walking);
 
@@ -160,7 +160,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				size : { width:7, height:5 },
 				bounds : { width: 28, height:5},
 				frames : [0,1],
-				frameRate : 10 /* FPS */
+				frameRate : 10
 			});
 			this.addAction(running);
 
@@ -169,7 +169,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				size : { width:7, height:4 },
 				bounds : { width: 7, height:5},
 				frames : [3],
-				frameRate : 5 /* FPS */
+				frameRate : 5
 			});
 			this.addAction(idle_food);
 
@@ -178,7 +178,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				size : { width:7, height:4 },
 				bounds : { width: 7, height:5},
 				frames : [3],
-				frameRate : 5 /* FPS */
+				frameRate : 5
 			});
 			this.addAction(walking_food);
 
@@ -187,7 +187,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				size : { width:7, height:4 },
 				bounds : { width: 7, height:5},
 				frames : [3],
-				frameRate : 10 /* FPS */
+				frameRate : 10
 			});
 			this.addAction(running_food);
 
@@ -202,22 +202,22 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 		update : function(elapsed) {
 
 			var blended = new ai.steering.PrioritySteering();
-			blended.push(new ai.steering.CollisionAvoidance(this.kinematics(), this.get_others_kinematic('ant')));
+			blended.push(new ai.steering.CollisionAvoidance(this.kinematics(), this.get_others_kinematic()));
 			blended.push(new ai.steering.Separation(this.kinematics(), this.get_others_kinematic('ant')));
 
 			var actions = this.statemachine.update();
 			if(actions.indexOf('seek_food_action') >= 0) {
-				var foods = this.get_others('food')
-				var target = foods[0].kinematics();
-				blended.push(new ai.steering.Arrive(this.kinematics(), target));
+				var foods = this.get_others('food');
+				var arrive_target = foods[0].kinematics();
+				blended.push(new ai.steering.Arrive(this.kinematics(), arrive_target));
 			} else if(actions.indexOf('pickup_food_action') >= 0) {
 				this.inventory = true;
 			} else if(actions.indexOf('is_home_action') >= 0) {
 				this.inventory = false;
 			} else if(actions.indexOf('seek_home_action') >= 0) {
 				var homes = this.get_others('home');
-				var target = homes[0].kinematics();
-				blended.push(new ai.steering.Arrive(this.kinematics(), target));
+				var home_target = homes[0].kinematics();
+				blended.push(new ai.steering.Arrive(this.kinematics(), home_target));
 			} else {
 				//console.log(actions);
 			}
@@ -238,7 +238,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 					y : new_velocity.e(2)
 				},
 				rotation: this.get_actuated_rotation(output, elapsed)
-			}
+			};
 		},
 
 		get_actuated_velocity: function(output, elapsed) {
@@ -298,7 +298,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 
 			if(this.currentAnimation !== this.previousAnimation) {
 				var actions = this.runningActions;
-				for(key in actions) {
+				for(var key in actions) {
 
 					actions[key].stop();
 				}
