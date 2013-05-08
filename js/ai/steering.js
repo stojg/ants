@@ -289,7 +289,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function () {
 				return steering;
 			}
 
-			var targetRelativePos = $V([0,0]);
+			var targetRelativePos = Vector.Zero(2);
 			// if we're going to hit exactly, or if we're already colliding,
 			// then do the steering based on current position
 			if (firstMinSeparation <= 0 || firstDistance < firstRadius) {

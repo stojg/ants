@@ -1,4 +1,4 @@
-define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, PriorityQueue){
+define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue){
 
 	var init = function() {
 
@@ -36,7 +36,7 @@ define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, Priority
 			
 			layer.addNode(create_ant({x: 160, y:160}, [0, 0], 0, layer));
 
-			layer.addNode(create_stone([360,135], layer));
+			layer.addNode(create_stone([100,135], layer));
 			//layer.addNode(create_stone([600,110], layer));
 			layer.addNode(create_vertical_wall([1,160], layer));
 			layer.addNode(create_vertical_wall([960,160], layer));
@@ -134,18 +134,14 @@ define(["game", "ant", "libs/utils/priorityqueue"], function(Game, ant, Priority
 		var main_scene = window.engine.scenes.getScene('main');
 		var action_layer = main_scene.getLayer('action');
 		var nodes = action_layer.getNodesByType(pulse.Sprite);
-
-		//console.log(typeof nodes);
-		var queue = new PriorityQueue('position', PriorityQueue.MAX_HEAP);
-
-		for(var key in nodes) {
-			if(typeof nodes[key] !== 'undefined') {
-
-				//queue.insert(nodes[key]);
-			}
-			
+		var distance = function(a, b){
+			return Math.pow(a.x - b.x, 2) +  Math.pow(a.y - b.y, 2);
 		}
-		//console.log(queue.getHighestPriorityElement());
+		var list = [];
+		for(var key in nodes) {
+			list.push({node: nodes[key], x: nodes[key].position.x, y: nodes[key].position.y});
+		}
+		window.engine.actors = new kdTree(list, distance, ["x", "y"]);
 	};
 
 	return {
