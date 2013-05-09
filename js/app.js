@@ -36,8 +36,8 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			
 			layer.addNode(create_ant({x: 160, y:160}, [0, 0], 0, layer));
 
-			layer.addNode(create_stone([100,135], layer));
-			//layer.addNode(create_stone([600,110], layer));
+			layer.addNode(create_stone([300,140], layer));
+			layer.addNode(create_stone([600,110], layer));
 			layer.addNode(create_vertical_wall([1,160], layer));
 			layer.addNode(create_vertical_wall([960,160], layer));
 			layer.addNode(create_horizontal_wall([480,0], layer));
@@ -76,7 +76,7 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			position: {x:position[0], y:position[1]},
 			layer: layer,
 			size: {x: 20, y: 20},
-			collision: { width: 24, height: 24 },
+			collision: { width: 18, height: 18 },
 			static: true,
 			type: 'obstacle'
 		});
