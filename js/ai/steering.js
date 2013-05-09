@@ -21,8 +21,8 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			// speed / velocity limits
 			this.max_velocity = args.max_velocity || 0;
 			this.max_acceleration = args.max_acceleration || 0,
-			// rotation limits
-			this.max_angular_velocity = args.max_angular_velocity || 0;
+					// rotation limits
+					this.max_angular_velocity = args.max_angular_velocity || 0;
 			this.max_angular_acceleration = args.max_angular_acceleration || 0;
 			this.radius = args.radius || 0;
 			this.name = args.name || '';
@@ -168,7 +168,6 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			}
 			return steering;
 		},
-
 		/**
 		 * Make sure that the degree passed in always are in the range of 0-360
 		 *
@@ -285,6 +284,8 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		get: function() {
 
 			// 1. Find the target that's closest to collision
+
+			// Anything longer away then the below value will be disregarded
 			var shortestTime = 0.45;
 			var steering = new ai.steering.Output();
 
@@ -296,44 +297,50 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			var firstRelativePos = false;
 			var firstRelativeVel = false;
 			var firstRadius = 0;
+
 			// Loop through each target
 			for (var i = this.targets.length - 1; i >= 0; i--) {
-
 				var target = this.targets[i];
+
 				var radius = target.radius + this.character.radius;
+				var relative_velocity = target.velocity.subtract(this.character.velocity);
+				var relative_speed = relative_velocity.length();
+				var relative_pos = this.closest_collision_point(this.character, target, radius);
+				var time_to_collision = relative_pos.dot(relative_velocity) / (relative_speed * relative_speed);
+				var distance = relative_pos.length();
 
-				var relativePos = this.character.position.subtract(target.position);
-				var magV = Math.sqrt(relativePos.e(1)*relativePos.e(1) + relativePos.e(2)*relativePos.e(2));
-				var aX = target.position.e(1) + relativePos.e(1) / magV * radius;
-				var aY = target.position.e(2) + relativePos.e(2) / magV * radius;
+				// This value represents the gap between character and target when
+				// they are closest to eachother
+				var minimum_separation = distance - (relative_speed * shortestTime);
 
-				var c_relative_pos = this.character.position.subtract($V([aX, aY]));
-				//console.log(relativePos.inspect());
-				var relativeVel = target.velocity.subtract(this.character.velocity);
-				var relativeSpeed = relativeVel.length();
-
-				var timeToCollision = c_relative_pos.dot(relativeVel) / (relativeSpeed * relativeSpeed);
-
-				var distance = c_relative_pos.length();
-
-				var minSeparation = distance - (relativeSpeed * shortestTime);
-
-				if (minSeparation > radius) {
+				// The character passes througth the gap, so no collision
+				if (minimum_separation > radius) {
 					continue;
 				}
-				if (timeToCollision > 0 && timeToCollision < shortestTime) {
-					// Store the time, target and other data
-					shortestTime = timeToCollision;
-					firstTarget = target;
-					firstMinSeparation = minSeparation;
-					firstDistance = distance;
-					firstRelativePos = c_relative_pos;
-					firstRelativeVel = relativeVel;
-					firstRadius = radius;
+
+				// If the time to collision is negative, target and character is
+				// moving in opposite direction.
+				if (time_to_collision < 0) {
+					continue;
 				}
+
+				// The collision happens so long in the future so we dont care
+				if (time_to_collision > shortestTime) {
+					continue;
+				}
+
+				// Store the time, target and other data
+				shortestTime = time_to_collision;
+				firstTarget = target;
+				firstMinSeparation = minimum_separation;
+				firstDistance = distance;
+				firstRelativePos = relative_pos;
+				firstRelativeVel = relative_velocity;
+				firstRadius = radius;
 			}
 
-			// 2. Calculate the steering
+			// If we haven't found a collisionable target within shortestTime
+			// character we dont have anything to dodge
 			if (!firstTarget) {
 				return steering;
 			}
@@ -343,19 +350,29 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			// then do the steering based on current position
 			if (firstMinSeparation <= 0 || firstDistance < firstRadius) {
 				targetRelativePos = firstTarget.position.subtract(this.character.position);
-			}
 			// otherwise calculate the future relative position
-			else {
+			} else {
 				targetRelativePos = firstRelativePos.add(firstRelativeVel.multiply(shortestTime));
 			}
 
-			var flee_target = new ai.steering.Kinematics({
+			// calculate the target to evade
+			var evade_target = new ai.steering.Kinematics({
 				position: this.character.position.add(targetRelativePos),
 				velocity: firstRelativeVel
 			});
 
-			var st = new ai.steering.Evade(this.character, flee_target);
-			return st.get();
+			var evade = new ai.steering.Evade(this.character, evade_target);
+			return evade.get();
+		},
+				
+		closest_collision_point: function(point, target, target_radius) {
+			// calculate the collision point on the target collision circle
+			var relative_pos = point.position.subtract(target.position);
+			var magV = Math.sqrt(relative_pos.e(1) * relative_pos.e(1) + relative_pos.e(2) * relative_pos.e(2));
+			var aX = target.position.e(1) + relative_pos.e(1) / magV * target_radius;
+			var aY = target.position.e(2) + relative_pos.e(2) / magV * target_radius;
+			// This is the collision relative position
+			return point.position.subtract($V([aX, aY]));
 		}
 	});
 
@@ -464,6 +481,8 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		},
 		update: function() {
 			var triggered_transition = false;
+
+			// Walk through all the transitions for the first one that triggers
 			var transitions = this.current_state.get_transitions();
 			for (var i = 0; i < transitions.length; i++) {
 				var transition = transitions[i];
@@ -473,16 +492,17 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 				}
 			}
 
-			var actions = [];
-			if (triggered_transition) {
-				var target_state = triggered_transition.get_target_state();
-				actions.push(this.current_state.get_exit_action());
-				actions.push(triggered_transition.get_action());
-				actions.push(target_state.get_entry_action());
-				this.current_state = target_state;
-			} else {
-				actions.push(this.current_state.get_action());
+			// no transitions to other states, keep doing what you're doing
+			if (triggered_transition === false) {
+				return [this.current_state.get_action()];
 			}
+
+			var actions = [];
+			var target_state = triggered_transition.get_target_state();
+			actions.push(this.current_state.get_exit_action());
+			actions.push(triggered_transition.get_action());
+			actions.push(target_state.get_entry_action());
+			this.current_state = target_state;
 			return actions;
 		}
 	});
