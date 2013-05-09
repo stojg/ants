@@ -319,7 +319,6 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			this._super(character, target);
 		},
 		get: function() {
-			var steering = new ai.steering.Output();
 			var direction = this.target.position.subtract(this.character.position);
 			var distance = direction.length();
 			var speed = this.character.velocity.length();
@@ -340,7 +339,6 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			this._super(character, target);
 		},
 		get: function() {
-			var steering = new ai.steering.Output();
 			var direction = this.target.position.subtract(this.character.position);
 			var distance = direction.length();
 			var speed = this.character.velocity.length();

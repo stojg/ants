@@ -131,12 +131,11 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 			args.size = { width: 7, height: 5 };
 			args.collision = { width: 5, height: 3 };
 			args.max_velocity = 60;
-			args.max_acceleration = 0.2;
+			args.max_acceleration = 0.1;
 			args.max_angular_velocity = 0.5;
 			args.max_angular_acceleration = 0.2;
 			args.type = 'ant';
 			this._super(args);
-
 			this.setup_animations();
 
 			this.inventory = false;
