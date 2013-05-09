@@ -257,27 +257,31 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 				var radius = target.radius + this.character.radius;
 
 				var relativePos = this.character.position.subtract(target.position);
+				var magV = Math.sqrt(relativePos.e(1)*relativePos.e(1) + relativePos.e(2)*relativePos.e(2));
+				var aX = target.position.e(1) + relativePos.e(1) / magV * radius;
+				var aY = target.position.e(2) + relativePos.e(2) / magV * radius;
+
+				var c_relative_pos = this.character.position.subtract($V([aX, aY]));
+				//console.log(relativePos.inspect());
 				var relativeVel = target.velocity.subtract(this.character.velocity);
 				var relativeSpeed = relativeVel.length();
 
-				var timeToCollision = relativePos.dot(relativeVel) / (relativeSpeed * relativeSpeed);
+				var timeToCollision = c_relative_pos.dot(relativeVel) / (relativeSpeed * relativeSpeed);
 
-				// Check if it is going to be a collision at all
-				var distance = relativePos.length();
+				var distance = c_relative_pos.length();
 
 				var minSeparation = distance - (relativeSpeed * shortestTime);
 
 				if (minSeparation > radius) {
 					continue;
 				}
-
 				if (timeToCollision > 0 && timeToCollision < shortestTime) {
 					// Store the time, target and other data
 					shortestTime = timeToCollision;
 					firstTarget = target;
 					firstMinSeparation = minSeparation;
 					firstDistance = distance;
-					firstRelativePos = relativePos;
+					firstRelativePos = c_relative_pos;
 					firstRelativeVel = relativeVel;
 					firstRadius = radius;
 				}
