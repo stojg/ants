@@ -5,6 +5,11 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 	ai = {};
 	ai.steering = ai.steering || {};
 
+	/**
+	 * Kinematics is what get passed in to the steering behaviour. It's a struct
+	 * that tells the behaviours about the character and targets internals. With
+	 * this information it can return a steering output
+	 */
 	ai.steering.Kinematics = Class.extend({
 		init: function(args) {
 			args = args || {};
@@ -25,6 +30,9 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Output is a struct that is the return value from any steering behaviour
+	 */
 	ai.steering.Output = Class.extend({
 		init: function() {
 			this.linear = vec([0, 0]);
@@ -38,6 +46,10 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Seek tries to get as fast as possible in a direction and will not brake
+	 * when getting close.
+	 */
 	ai.steering.Seek = Class.extend({
 		init: function(character, target) {
 			this.character = character;
@@ -53,6 +65,9 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Flee is the opposite to Seek, full speed away from a target
+	 */
 	ai.steering.Flee = ai.steering.Seek.extend({
 		get: function() {
 			var steering = new ai.steering.Output();
@@ -64,6 +79,10 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Arrive is like seek with the addition that it slows down the character
+	 * when it gets closer.
+	 */
 	ai.steering.Arrive = Class.extend({
 		init: function(character, target) {
 			this.character = character;
@@ -108,6 +127,9 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Align imitates the current rotation of the target.
+	 */
 	ai.steering.Align = Class.extend({
 		init: function(character, target) {
 			this.character = character;
@@ -146,6 +168,13 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			}
 			return steering;
 		},
+
+		/**
+		 * Make sure that the degree passed in always are in the range of 0-360
+		 *
+		 * @param {int} rotation
+		 * @returns {int}
+		 */
 		mapToRange: function(rotation) {
 			if (Math.abs(rotation) > 180) {
 				if (rotation < 0) {
@@ -158,6 +187,10 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Face will output a angular rotation where the target is to look straight 
+	 * at the target.
+	 */
 	ai.steering.Face = ai.steering.Align.extend({
 		get: function() {
 			var direction = this.target.position.subtract(this.character.position);
@@ -172,6 +205,11 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * The character tries to separate from close targets. Works best with
+	 * targets that are aligned to the character. For example groups of agent
+	 * going in the same direction.
+	 */
 	ai.steering.Separation = Class.extend({
 		init: function(character, targets) {
 			this.character = character;
@@ -192,6 +230,10 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Wander does what it sounds, it lets the character wandering around
+	 * randomly.
+	 */
 	ai.steering.Wander = ai.steering.Face.extend({
 		init: function(character) {
 			this._super(character, new ai.steering.Kinematics());
@@ -231,6 +273,10 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * CollisionAvoidance calculates the closest future collision for the 
+	 * targets and flees from that collision point.
+	 */
 	ai.steering.CollisionAvoidance = Class.extend({
 		init: function(character, targets, o) {
 			this.character = character;
@@ -313,6 +359,10 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Pursue seeks to where a target is going. Using a simple seek the character
+	 * will only go there where the target was (if its moving).
+	 */
 	ai.steering.Pursue = ai.steering.Seek.extend({
 		init: function(character, target) {
 			this.maxPrediction = 0.5;
@@ -333,6 +383,10 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Evade a target that is chasing this one. It's basically Pursuit, but
+	 * delegate to flee instead of Seek. 
+	 */
 	ai.steering.Evade = ai.steering.Flee.extend({
 		init: function(character, target) {
 			this.maxPrediction = 0.5;
@@ -353,6 +407,9 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Bleended steering blends a bunch of steering behaviours with a weight.
+	 */
 	ai.steering.BlendedSteering = Class.extend({
 		init: function() {
 			this.behaviours = [];
@@ -371,6 +428,10 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 		}
 	});
 
+	/**
+	 * Priority testing test one behaviour at a time and returns the first one
+	 * that have a non zero output.
+	 */
 	ai.steering.PrioritySteering = Class.extend({
 		init: function() {
 			this.behaviours = [];
@@ -391,6 +452,11 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 
 	ai.state = {};
 
+	/**
+	 * This is a simple state machine that can be used by entities.
+	 *
+	 * The constructor takes a starting state with transitions to other states.
+	 */
 	ai.state.Machine = Class.extend({
 		init: function(initial_state) {
 			this.initial_state = initial_state;
