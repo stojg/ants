@@ -137,59 +137,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 			args.type = 'ant';
 			this._super(args);
 
-			var idle = new pulse.AnimateAction({
-				name: 'idle',
-				size : { width:7, height:5 },
-				bounds : { width: 28, height:5},
-				frames : [0],
-				frameRate : 1
-			});
-			this.addAction(idle);
-
-			var walking = new pulse.AnimateAction({
-				name: 'walking',
-				size : { width:7, height:5 },
-				bounds : { width: 28, height:5},
-				frames : [0,1],
-				frameRate : 5
-			});
-			this.addAction(walking);
-
-			var running = new pulse.AnimateAction({
-				name: 'running',
-				size : { width:7, height:5 },
-				bounds : { width: 28, height:5},
-				frames : [0,1],
-				frameRate : 10
-			});
-			this.addAction(running);
-
-			var idle_food = new pulse.AnimateAction({
-				name: 'idle_food',
-				size : { width:7, height:4 },
-				bounds : { width: 7, height:5},
-				frames : [3],
-				frameRate : 5
-			});
-			this.addAction(idle_food);
-
-			var walking_food = new pulse.AnimateAction({
-				name: 'walking_food',
-				size : { width:7, height:4 },
-				bounds : { width: 7, height:5},
-				frames : [3],
-				frameRate : 5
-			});
-			this.addAction(walking_food);
-
-			var running_food = new pulse.AnimateAction({
-				name: 'running_food',
-				size : { width:7, height:4 },
-				bounds : { width: 7, height:5},
-				frames : [3],
-				frameRate : 10
-			});
-			this.addAction(running_food);
+			this.setup_animations();
 
 			this.inventory = false;
 			this.statemachine = new ai.state.Machine(new state_find_food(this));
@@ -300,6 +248,63 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				this.runAction(this.currentAnimation);
 				this.previousAnimation = this.currentAnimation;
 			}
+		},
+				
+		setup_animations: function() {
+			var idle = new pulse.AnimateAction({
+				name: 'idle',
+				size : { width:7, height:5 },
+				bounds : { width: 28, height:5},
+				frames : [0],
+				frameRate : 1
+			});
+			this.addAction(idle);
+
+			var walking = new pulse.AnimateAction({
+				name: 'walking',
+				size : { width:7, height:5 },
+				bounds : { width: 28, height:5},
+				frames : [0,1],
+				frameRate : 5
+			});
+			this.addAction(walking);
+
+			var running = new pulse.AnimateAction({
+				name: 'running',
+				size : { width:7, height:5 },
+				bounds : { width: 28, height:5},
+				frames : [0,1],
+				frameRate : 10
+			});
+			this.addAction(running);
+
+			var idle_food = new pulse.AnimateAction({
+				name: 'idle_food',
+				size : { width:7, height:4 },
+				bounds : { width: 7, height:5},
+				frames : [3],
+				frameRate : 5
+			});
+			this.addAction(idle_food);
+
+			var walking_food = new pulse.AnimateAction({
+				name: 'walking_food',
+				size : { width:7, height:4 },
+				bounds : { width: 7, height:5},
+				frames : [3],
+				frameRate : 5
+			});
+			this.addAction(walking_food);
+
+			var running_food = new pulse.AnimateAction({
+				name: 'running_food',
+				size : { width:7, height:4 },
+				bounds : { width: 7, height:5},
+				frames : [3],
+				frameRate : 10
+			});
+			this.addAction(running_food);
 		}
+
 	});
 });
