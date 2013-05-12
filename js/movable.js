@@ -52,12 +52,11 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 		},
 		
 		get_collisions : function() {
-			var objects = window.engine.actors.nearest({ x: this.position.x, y: this.position.y}, 4);
+			var objects = window.engine.graph['ant'].nearest({ x: this.position.x, y: this.position.y}, 8);
 			var collisions = [];
+			return collisions;
 			for(var key in objects) {
-
 				var object = objects[key][0].node;
-				
 				if(object.name === this.name) {
 					continue;
 				}
@@ -71,40 +70,23 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 			return collisions;
 		},
 
-		get_others: function(type) {
+		get_closest: function(type) {
+			if(window.engine.graph[type].balanceFactor() === 'Infinity') {
+				return [];
+			}
+			var objects = window.engine.graph[type].nearest({ x: this.position.x, y: this.position.y}, 20);
 			var others = [];
-			for(var key in this.layer.objects) {
-				var object = this.layer.objects[key];
-				if(object.name === this.name || object.type !== type) {
-					continue;
+			for(var key in objects) {
+				var object = objects[key][0].node;
+				if(object.name !== this.name) {
+					others.push(object.kinematics());
 				}
-				others.push(object);
 			}
 			return others;
 		},
 
-		get_nearby: function(type) {
-
-			var objects = window.engine.actors.nearest({ x: this.position.x, y: this.position.y}, 8);
-			
-			var others = [];
-			for(var key in objects) {
-				var object = objects[key][0].node;
-				if(object.name === this.name) {
-					continue;
-				}
-				if(object.type === 'wall') {
-					continue;
-				}
-				if(object.type === 'home') {
-					continue;
-				}
-				if(object.type === 'food') {
-					continue;
-				}
-				others.push(object.kinematics());
-			}
-			return others;
+		get_by_type: function(type) {
+	
 		},
 
 		aabb_vs_aabb : function(that) {

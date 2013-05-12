@@ -89,7 +89,7 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			layer: layer,
 			size: {x: 960, y: 1},
 			static: true,
-			type: 'wall'
+			type: 'obstacle'
 		});
 	};
 
@@ -100,7 +100,7 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			layer: layer,
 			size: {x: 1, y: 360},
 			static: true,
-			type: 'wall'
+			type: 'obstacle'
 		});
 	};
 
@@ -133,15 +133,27 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 	var update = function(elapsed) {
 		var main_scene = window.engine.scenes.getScene('main');
 		var action_layer = main_scene.getLayer('action');
+		get_graph(action_layer);
+	};
+
+	var distance = function(a, b){
+		return Math.pow(a.x - b.x, 2) +  Math.pow(a.y - b.y, 2);
+	}
+
+	var get_graph = function(action_layer) {
+		window.engine.graph = window.engine.graph || [];
 		var nodes = action_layer.getNodesByType(pulse.Sprite);
-		var distance = function(a, b){
-			return Math.pow(a.x - b.x, 2) +  Math.pow(a.y - b.y, 2);
-		}
 		var list = [];
 		for(var key in nodes) {
-			list.push({node: nodes[key], x: nodes[key].position.x, y: nodes[key].position.y});
+			if(typeof list[nodes[key].type] === 'undefined') {
+				list[nodes[key].type] = [];
+			}
+			list[nodes[key].type].push({node: nodes[key], x: nodes[key].position.x, y: nodes[key].position.y});
 		}
-		window.engine.actors = new kdTree(list, distance, ["x", "y"]);
+
+		for(var type in list) {
+			window.engine.graph[type] = new kdTree(list[type], distance, ["x", "y"]);
+		}
 	};
 
 	return {

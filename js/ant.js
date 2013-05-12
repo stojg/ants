@@ -5,9 +5,9 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 			this.ant = ant;
 		},
 		is_triggered: function() {
-			var food_items = this.ant.get_others('food');
+			var food_items = this.ant.get_closest('food');
 			for(var key in food_items) {
-				var distance = food_items[key].kinematics().position.distanceFrom(this.ant.kinematics().position);
+				var distance = food_items[key].position.distanceFrom(this.ant.kinematics().position);
 				if(distance < 8) {
 					return true;
 				}
@@ -42,10 +42,9 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 			this.ant = ant;
 		},
 		is_triggered: function() {
-
-			var food_items = this.ant.get_others('home');
-			for(var key in food_items) {
-				var distance = food_items[key].kinematics().position.distanceFrom(this.ant.kinematics().position);
+			var homes = this.ant.get_closest('home');
+			for(var key in homes) {
+				var distance = homes[key].position.distanceFrom(this.ant.kinematics().position);
 				if(distance < 10) {
 					return true;
 				}
@@ -148,24 +147,25 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				
 		update : function(elapsed) {
 			var steering = new ai.steering.PrioritySteering();
-			var actors = this.get_nearby();
-			steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), actors));
-			steering.push(new ai.steering.Separation(this.kinematics(), actors));
+			//var obstacles = this.get_closest('obstacle');
+			//steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), obstacles));
+			var ants = this.get_closest('ant');
+			steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
+			steering.push(new ai.steering.Separation(this.kinematics(), ants));
 			var actions = this.statemachine.update();
 			if(actions.indexOf('seek_food_action') >= 0) {
-				var foods = this.get_others('food');
-				var arrive_target = foods[0].kinematics();
-				steering.push(new ai.steering.Arrive(this.kinematics(), arrive_target));
+				var foods = this.get_closest('food');
+				var food_target = foods[0];
+				steering.push(new ai.steering.Arrive(this.kinematics(), food_target));
 			} else if(actions.indexOf('pickup_food_action') >= 0) {
 				this.inventory = true;
 			} else if(actions.indexOf('is_home_action') >= 0) {
 				this.inventory = false;
 			} else if(actions.indexOf('seek_home_action') >= 0) {
-				var homes = this.get_others('home');
-				var home_target = homes[0].kinematics();
+				var homes = this.get_closest('home');
+				var home_target = homes[0];
 				steering.push(new ai.steering.Arrive(this.kinematics(), home_target));
 			}
-
 			var actuated_steering = this.actuate(steering.get(), elapsed);
 			this.animate();
 			this.velocity = actuated_steering.velocity;
