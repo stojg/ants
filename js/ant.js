@@ -147,8 +147,7 @@ define(['pulse', 'movable', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src']
 				
 		update : function(elapsed) {
 			var steering = new ai.steering.PrioritySteering();
-			//var obstacles = this.get_closest('obstacle');
-			//steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), obstacles));
+			steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
 			var ants = this.get_closest('ant');
 			steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
 			steering.push(new ai.steering.Separation(this.kinematics(), ants));

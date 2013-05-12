@@ -52,9 +52,8 @@ define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
 		},
 		
 		get_collisions : function() {
-			var objects = window.engine.graph['ant'].nearest({ x: this.position.x, y: this.position.y}, 8);
+			var objects = window.engine.graph['all'].nearest({ x: this.position.x, y: this.position.y}, 8);
 			var collisions = [];
-			return collisions;
 			for(var key in objects) {
 				var object = objects[key][0].node;
 				if(object.name === this.name) {

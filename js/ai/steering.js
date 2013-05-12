@@ -285,8 +285,8 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 
 			// 1. Find the target that's closest to collision
 
-			// Anything longer away then the below value will be disregarded
-			var shortestTime = 0.45;
+			// Anything furtjer away then the below value will be disregarded
+			var shortestTime = 0.35;
 			var steering = new ai.steering.Output();
 
 			// Store the target that collides then, and other datea
@@ -350,7 +350,7 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			// then do the steering based on current position
 			if (firstMinSeparation <= 0 || firstDistance < firstRadius) {
 				targetRelativePos = firstTarget.position.subtract(this.character.position);
-			// otherwise calculate the future relative position
+				// otherwise calculate the future relative position
 			} else {
 				targetRelativePos = firstRelativePos.add(firstRelativeVel.multiply(shortestTime));
 			}
@@ -373,6 +373,47 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			var aY = target.position.e(2) + relative_pos.e(2) / magV * target_radius;
 			// This is the collision relative position
 			return point.position.subtract($V([aX, aY]));
+		}
+	});
+
+	ai.steering.ObstacleAvoidance = ai.steering.Seek.extend({
+		init: function(character, targets) {
+			this.CollisionDetector = new ai.steering.CollisionDetector(targets);
+			this.avoidDistance = 15;
+			this.lookahead = 100;
+			this._super(character, new ai.steering.Kinematics());
+		},
+		get: function() {
+			var steering = new ai.steering.Output();
+			var character = this.character;
+
+			var rayVector = character.velocity;
+			rayVector = rayVector.normalize().multiply(this.lookahead);
+
+			
+			var collision = this.CollisionDetector.getCollision(character.position, rayVector);
+
+			if (!collision) {
+				return steering;
+			}
+
+			var b = collision.normal.multiply(this.avoidDistance);
+
+			this.target.position = collision.position.add(b);
+			/*var main_scene = window.engine.scenes.getScene('main');
+			var debug_layer = main_scene.getLayer('debug');
+			debug_layer.addNode(
+				new Movable({
+					src: 'img/food.png',
+					position: {x:this.target.position.e(1), y:this.target.position.e(2)},
+					size: {x: 2, y: 2},
+					static: true,
+					collidable: false,
+					type: 'debug'
+				})
+			);
+			*/
+			return this._super();
 		}
 	});
 
@@ -423,6 +464,91 @@ define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
 			return this._super();
 		}
 	});
+
+	ai.steering.CollisionDetector = Class.extend({
+		init: function(targets) {
+			this.entities = targets;
+		},
+		getCollision: function(position, ray) {
+			var rayLength = ray.length();
+			// get from character
+			var totalRadius = 6;
+			for (var i = this.entities.length - 1; i >= 0; i--) {
+				var entity = this.entities[i];
+				
+				// starting point
+				var E = position;
+				var L = position.add(ray);
+				var C = entity.position;
+				var r = entity.radius+totalRadius;
+
+				// direction vector
+				var d = ray;
+				// vector from sphere to start
+				var f = E.subtract(C);
+
+
+				var a = d.dot(d);
+				var b = 2*f.dot(d);
+				var c = f.dot(f) - r*r;
+
+				var discriminant = b*b-4*a*c;
+
+				 // no intersection
+				if(discriminant < 0 ) {
+					continue;
+				}
+
+
+				// ray didn't totally miss sphere,
+				// so there is a solution to
+				// the equation.
+				discriminant = Math.sqrt( discriminant );
+
+				// either solution may be on or off the ray so need to test both
+				// t1 is always the smaller value, because BOTH discriminant and
+				// a are nonnegative.
+				var t1 = (-b - discriminant)/(2*a);
+				var t2 = (-b + discriminant)/(2*a);
+
+				var hit = false;
+
+				// 3x HIT cases:
+				//          -o->             --|-->  |            |  --|->
+				// Impale(t1 hit,t2 hit), Poke(t1 hit,t2>1), ExitWound(t1<0, t2 hit),
+
+				// 3x MISS cases:
+				//       ->  o                     o ->              | -> |
+				// FallShort (t1>1,t2>1), Past (t1<0,t2<0), CompletelyInside(t1<0, t2>1)
+
+				// t1 is an intersection, and if it hits, it's closer than t2 would be Impale, Poke
+				if( t1 >= 0 && t1 <= 1 ) {
+					hit = ray.multiply(t1);
+					// here t1 didn't intersect so we are either started inside the sphere or completely past it
+				} else if( t2 >= 0 && t2 <= 1 ) {
+					hit = ray.multiply(t2);
+				}
+
+				if(hit === false) {
+					return false;
+				}
+
+				collision = {
+					position: null,
+					normal: null
+				}
+
+				collision.position = hit.add(position);
+				collision.normal = collision.position.subtract(entity.position).normalize();
+				return collision;
+			}
+		}
+	});
+
+	ai.steering.Collision = {
+		position: [0, 0],
+		normal: [0, 0]
+	};
 
 	/**
 	 * Bleended steering blends a bunch of steering behaviours with a weight.

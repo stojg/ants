@@ -42,12 +42,19 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			layer.addNode(create_vertical_wall([960,160], layer));
 			layer.addNode(create_horizontal_wall([480,0], layer));
 			layer.addNode(create_horizontal_wall([480,319], layer));
-			
+
 			// Create a scene.
 			var scene = new pulse.Scene();
+			scene.name = 'main';
+
 			scene.addLayer(bg_layer);
 			scene.addLayer(layer);
-			scene.name = 'main';
+
+			var debug_layer = new pulse.Layer();
+			debug_layer.position = {x: 0, y: 0};
+			debug_layer.anchor = {x: 0, y: 0};
+			debug_layer.name = 'debug';
+			scene.addLayer(debug_layer);
 
 			window.engine.scenes.addScene(scene);
 			window.engine.scenes.activateScene(scene);
@@ -89,7 +96,7 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			layer: layer,
 			size: {x: 960, y: 1},
 			static: true,
-			type: 'obstacle'
+			type: 'wall'
 		});
 	};
 
@@ -100,7 +107,7 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			layer: layer,
 			size: {x: 1, y: 360},
 			static: true,
-			type: 'obstacle'
+			type: 'wall'
 		});
 	};
 
@@ -144,11 +151,13 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 		window.engine.graph = window.engine.graph || [];
 		var nodes = action_layer.getNodesByType(pulse.Sprite);
 		var list = [];
+		list['all']  = [];
 		for(var key in nodes) {
 			if(typeof list[nodes[key].type] === 'undefined') {
 				list[nodes[key].type] = [];
 			}
 			list[nodes[key].type].push({node: nodes[key], x: nodes[key].position.x, y: nodes[key].position.y});
+			list['all'].push({node: nodes[key], x: nodes[key].position.x, y: nodes[key].position.y});
 		}
 
 		for(var type in list) {
