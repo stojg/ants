@@ -14,13 +14,13 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			bg_layer.anchor = {x: 0, y: 0};
 			
 			var bg = new pulse.Sprite({
-				src: 'img/textures/grass/grass07.png'
+				src: 'img/textures/grass/grass07.jpg'
 			});
 			bg.size = {width: 512 , height: 512};
 			bg.position = {x: 256,y: 256};
 			bg_layer.addNode(bg);
 			var bg2 = new pulse.Sprite({
-				src: 'img/textures/grass/grass07.png'
+				src: 'img/textures/grass/grass07.jpg'
 			});
 			bg2.size = {width: 512 , height: 512};
 			bg2.position = {x: 768,y: 256};
@@ -35,6 +35,10 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			layer.addNode(create_food([680, 100], layer));
 			
 			layer.addNode(create_ant({x: 160, y:160}, [0, 0], 0, layer));
+
+			for (var i = 0; i < 20; i++) {
+				layer.addNode(create_stone([Math.random()*960,Math.random()*320], layer));
+			}
 
 			layer.addNode(create_stone([300,140], layer));
 			layer.addNode(create_stone([600,110], layer));
@@ -84,6 +88,7 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			layer: layer,
 			size: {x: 20, y: 20},
 			collision: { width: 18, height: 18 },
+			anchor: {x: 0.5, y: 0.5},
 			static: true,
 			type: 'obstacle'
 		});
