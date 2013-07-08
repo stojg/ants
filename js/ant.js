@@ -15,7 +15,7 @@ define(['pulse', 'movable', 'state', 'ai/steering', 'libs/sylvester.src'], funct
 			this.setup_animations();
 
 			this.inventory = false;
-			this.statemachine = new ai.state.Machine(new State.find_food(this));
+			this.statemachine = new State.Machine(new State.find_food(this));
 		},
 
 		carries: function(what) {

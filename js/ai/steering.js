@@ -592,45 +592,4 @@ define(['class', 'libs/sylvester.src'], function() {
 			return new ai.steering.Output();
 		}
 	});
-
-	ai.state = {};
-
-	/**
-	 * This is a simple state machine that can be used by entities.
-	 *
-	 * The constructor takes a starting state with transitions to other states.
-	 */
-	ai.state.Machine = Class.extend({
-		init: function(initial_state) {
-			this.initial_state = initial_state;
-			this.current_state = this.initial_state;
-		},
-		update: function() {
-			var triggered_transition = false;
-
-			// Walk through all the transitions for the first one that triggers
-			var transitions = this.current_state.get_transitions();
-			for (var i = 0; i < transitions.length; i++) {
-				var transition = transitions[i];
-				if (transition.is_triggered()) {
-					triggered_transition = transition;
-					break;
-				}
-			}
-
-			// no transitions to other states, keep doing what you're doing
-			if (triggered_transition === false) {
-				return [this.current_state.get_action()];
-			}
-
-			var actions = [];
-			var target_state = triggered_transition.get_target_state();
-			actions.push(this.current_state.get_exit_action());
-			actions.push(triggered_transition.get_action());
-			actions.push(target_state.get_entry_action());
-			this.current_state = target_state;
-			return actions;
-		}
-	});
-
 });
