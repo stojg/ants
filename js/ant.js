@@ -21,7 +21,7 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 			this.steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
 			var ants = this.get_closest('ant');
 			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
-			//this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
+			this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
 
 			this.update_state();
 			var actuated_steering = this.actuate(this.steering.get(), elapsed);
@@ -33,14 +33,15 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 		update_state: function(elapsed) {
 			var actions = this.statemachine.update();
 			if(actions.indexOf('seek_food_action') >= 0) {
-				var foods = this.get_closest('food');
-				var food_target = foods[0];
-				this.steering.push(new ai.steering.Arrive(this.kinematics(), food_target));
-			} else if(actions.indexOf('pickup_food_action') >= 0) {
+				this.steering.push(new ai.steering.Arrive(this.kinematics(), this.get_closest('food')[0]));
+			}
+			if(actions.indexOf('pickup_food_action') >= 0) {
 				this.inventory = true;
-			} else if(actions.indexOf('is_home_action') >= 0) {
+			}
+			if(actions.indexOf('is_home_action') >= 0) {
 				this.inventory = false;
-			} else if(actions.indexOf('seek_home_action') >= 0) {
+			}
+			if(actions.indexOf('seek_home_action') >= 0) {
 				this.steering.push(new ai.steering.Arrive(this.kinematics(), this.get_closest('home')[0]));
 			}
 		},
@@ -48,28 +49,24 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 		actuate : function(output, elapsed) {
 			var new_velocity = this.get_actuated_velocity(output, elapsed);
 			this.velocity = {
-					x : new_velocity.e(1),
-					y : new_velocity.e(2)
+				x : new_velocity.e(1),
+				y : new_velocity.e(2)
 			};
 			this.rotation = this.get_actuated_rotation(output, elapsed)
 		},
 
 		get_actuated_velocity: function(output, elapsed) {
-			var new_velocity = $V([this.velocity.x, this.velocity.y]);
-
 			var velocity_change = output.acceleration().multiply(elapsed);
-
+			var new_velocity = $V([this.velocity.x, this.velocity.y]);
 			// if there are no acceleration, brake.
 			if(velocity_change.length() === 0) {
 				return new_velocity.multiply(0.80);
 			}
-
 			new_velocity = new_velocity.add(velocity_change);
-			// trim to maximum speed
+			// trim back to maximum speed
 			if(new_velocity.length() > this.max_velocity) {
 				new_velocity = new_velocity.normalize().multiply(this.max_velocity);
 			}
-			
 			return new_velocity;
 		},
 
@@ -82,40 +79,29 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 			return this.rotation + output.rotation()*elapsed;
 		},
 
-		previousAnimation : '',
-		currentAnimation: '',
+		currentAnimation : false,
 
 		animate: function() {
 			var speed = $V([this.velocity.x, this.velocity.y]).length();
 
+			var newAnimation = 'idle';
+
 			if(speed > this.max_velocity/2) {
-				if(this.carries('food')) {
-					this.currentAnimation = 'running_food';
-				} else {
-					this.currentAnimation = 'running';
-				}
-				
+				newAnimation = 'running';
 			} else if (speed > 0 ) {
-				if(this.carries('food')) {
-					this.currentAnimation = 'walking_food';
-				} else {
-					this.currentAnimation = 'walking';
-				}
-			} else {
-				if(this.carries('food')) {
-					this.currentAnimation = 'idle_food';
-				} else {
-					this.currentAnimation = 'idle';
-				}
+				newAnimation = 'walking';
 			}
 
-			if(this.currentAnimation !== this.previousAnimation) {
-				var actions = this.runningActions;
-				for(var key in actions) {
-					actions[key].stop();
+			if(this.carries('food')) {
+				newAnimation = newAnimation + '_food';
+			}
+
+			if(newAnimation !== this.currentAnimation) {
+				for(var key in this.runningActions) {
+					this.runningActions[key].stop();
 				}
-				this.runAction(this.currentAnimation);
-				this.previousAnimation = this.currentAnimation;
+				this.runAction(newAnimation);
+				this.currentAnimation = newAnimation;
 			}
 		},
 				
