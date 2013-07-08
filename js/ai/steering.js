@@ -1,5 +1,6 @@
 define(['class', 'libs/sylvester.src'], function() {
 
+	// shorthand for vector create
 	var vec = Vector.create;
 
 	ai = {};
@@ -21,8 +22,8 @@ define(['class', 'libs/sylvester.src'], function() {
 			// speed / velocity limits
 			this.max_velocity = args.max_velocity || 0;
 			this.max_acceleration = args.max_acceleration || 0,
-					// rotation limits
-					this.max_angular_velocity = args.max_angular_velocity || 0;
+			// rotation limits
+			this.max_angular_velocity = args.max_angular_velocity || 0;
 			this.max_angular_acceleration = args.max_angular_acceleration || 0;
 			this.radius = args.radius || 0;
 			this.name = args.name || '';
@@ -43,6 +44,49 @@ define(['class', 'libs/sylvester.src'], function() {
 		},
 		rotation: function() {
 			return this.angular;
+		}
+	});
+
+	/**
+	 * Bleended steering blends a bunch of steering behaviours with a weight.
+	 */
+	ai.steering.BlendedSteering = Class.extend({
+		init: function() {
+			this.behaviours = [];
+		},
+		push: function(behaviour, weight) {
+			this.behaviours.push([behaviour, weight]);
+		},
+		get: function() {
+			var steering = new ai.steering.Output();
+			for (var i = this.behaviours.length - 1; i >= 0; i--) {
+				var steer = this.behaviours[i][0].get();
+				steering.linear = steering.linear.add(steer.linear.multiply(this.behaviours[i][1]));
+				steering.angular = steer.angular * this.behaviours[i][1];
+			}
+			return steering;
+		}
+	});
+
+	/**
+	 * Priority testing test one behaviour at a time and returns the first one
+	 * that have a non zero output.
+	 */
+	ai.steering.PrioritySteering = Class.extend({
+		init: function() {
+			this.behaviours = [];
+		},
+		push: function(behaviour) {
+			this.behaviours.push(behaviour);
+		},
+		get: function() {
+			for (var i = 0; i < this.behaviours.length; i++) {
+				var steeringResult = this.behaviours[i].get();
+				if (steeringResult.linear.length() > 0 || steeringResult.angular !== 0) {
+					return steeringResult;
+				}
+			}
+			return new ai.steering.Output();
 		}
 	});
 
@@ -536,47 +580,4 @@ define(['class', 'libs/sylvester.src'], function() {
 		position: [0, 0],
 		normal: [0, 0]
 	};
-
-	/**
-	 * Bleended steering blends a bunch of steering behaviours with a weight.
-	 */
-	ai.steering.BlendedSteering = Class.extend({
-		init: function() {
-			this.behaviours = [];
-		},
-		push: function(behaviour, weight) {
-			this.behaviours.push([behaviour, weight]);
-		},
-		get: function() {
-			var steering = new ai.steering.Output();
-			for (var i = this.behaviours.length - 1; i >= 0; i--) {
-				var steer = this.behaviours[i][0].get();
-				steering.linear = steering.linear.add(steer.linear.multiply(this.behaviours[i][1]));
-				steering.angular = steer.angular * this.behaviours[i][1];
-			}
-			return steering;
-		}
-	});
-
-	/**
-	 * Priority testing test one behaviour at a time and returns the first one
-	 * that have a non zero output.
-	 */
-	ai.steering.PrioritySteering = Class.extend({
-		init: function() {
-			this.behaviours = [];
-		},
-		push: function(behaviour) {
-			this.behaviours.push(behaviour);
-		},
-		get: function() {
-			for (var i = 0; i < this.behaviours.length; i++) {
-				var steeringResult = this.behaviours[i].get();
-				if (steeringResult.linear.length() > 0 || steeringResult.angular !== 0) {
-					return steeringResult;
-				}
-			}
-			return new ai.steering.Output();
-		}
-	});
 });
