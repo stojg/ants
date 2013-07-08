@@ -1,4 +1,4 @@
-define(['pulse', 'movable', 'state', 'ai/steering', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse, Movable, State) {
+define(['pulse', 'movable', 'state', 'ai/steering', 'libs/sylvester.src'], function (pulse, Movable, State) {
 
 	Ant = Movable.extend({
 		init : function(args) {

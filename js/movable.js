@@ -1,4 +1,4 @@
-define(['pulse', 'libs/sylvester-0-1-3/sylvester.src'], function (pulse) {
+define(['pulse', 'libs/sylvester.src'], function (pulse) {
 
 	Movable = pulse.Sprite.extend({
 

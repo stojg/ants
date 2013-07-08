@@ -1,4 +1,4 @@
-define(['class', 'libs/sylvester-0-1-3/sylvester.src'], function() {
+define(['class', 'libs/sylvester.src'], function() {
 
 	var vec = Vector.create;
 
