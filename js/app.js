@@ -36,9 +36,10 @@ define(["game", "gameobject", "ant", "kdTree"], function(Game, GameObject, Ant){
 			
 			layer.addNode(create_ant({x: 160, y:160}, [0, 0], 0, layer));
 
-			//for (var i = 0; i < 20; i++) {
+			for (var i = 0; i < 20; i++) {
+				layer.addNode(create_ant({x: Math.random()*960, y:Math.random()*320}, [0, 0], 0, layer));
 			//	layer.addNode(create_stone([Math.random()*960,Math.random()*320], layer));
-			//}
+			}
 
 			layer.addNode(create_stone([300,140], layer));
 			layer.addNode(create_stone([600,110], layer));
@@ -61,7 +62,7 @@ define(["game", "gameobject", "ant", "kdTree"], function(Game, GameObject, Ant){
 				layer.addNode(create_ant(args.position, [0, 0], Math.random()*360, layer));
 			});
 
-			window.engine.go(1, update);
+			window.engine.go(30, update);
 		});
 	};
 
