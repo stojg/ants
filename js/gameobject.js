@@ -1,4 +1,4 @@
-define(['pulse', 'libs/sylvester.src'], function (pulse) {
+define(['pulse'], function (pulse) {
 
 	var GameObject = pulse.Sprite.extend({
 

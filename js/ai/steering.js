@@ -1,4 +1,4 @@
-define(['class', 'libs/sylvester.src'], function() {
+define(['class', 'vector'], function() {
 
 	// shorthand for vector create
 	var vec = Vector.create;

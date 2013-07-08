@@ -1,4 +1,4 @@
-define(['pulse', 'gameobject', 'state', 'ai/steering', 'libs/sylvester.src'], function (pulse, GameObject, State) {
+define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 
 	var Ant = GameObject.extend({
 		init : function(args) {

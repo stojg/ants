@@ -1,4 +1,4 @@
-define(['pulse'], function() {
+define(function() {
 	//Do setup work here
 	var game = game || {};
 
