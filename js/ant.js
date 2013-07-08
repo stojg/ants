@@ -1,21 +1,15 @@
 define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 
 	var Ant = GameObject.extend({
-		init : function(args) {
+		inventory: false,
+		
+		init : function(args, initial_state, steering) {
 			args = args || {};
-			args.src = new pulse.Texture({filename: 'img/ant3.png'});
-			args.size = { width: 7, height: 5 };
-			args.collision = { width: 5, height: 3 };
-			args.max_velocity = 60;
-			args.max_acceleration = 0.1;
-			args.max_angular_velocity = 0.5;
-			args.max_angular_acceleration = 0.2;
 			args.type = 'ant';
 			this._super(args);
 			this.setup_animations();
-
-			this.inventory = false;
-			this.statemachine = new State.Machine(new State.find_food(this));
+			this.statemachine = new State.Machine(new initial_state(this));
+			this.steering = steering
 		},
 
 		carries: function(what) {
@@ -23,41 +17,41 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 		},
 				
 		update : function(elapsed) {
-			var steering = new ai.steering.PrioritySteering();
-			steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
+			this.steering = new ai.steering.PrioritySteering();
+			this.steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
 			var ants = this.get_closest('ant');
-			steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
-			steering.push(new ai.steering.Separation(this.kinematics(), ants));
+			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
+			//this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
+
+			this.update_state();
+			var actuated_steering = this.actuate(this.steering.get(), elapsed);
+			this.animate();
+			
+			this._super(elapsed);
+		},
+
+		update_state: function(elapsed) {
 			var actions = this.statemachine.update();
 			if(actions.indexOf('seek_food_action') >= 0) {
 				var foods = this.get_closest('food');
 				var food_target = foods[0];
-				steering.push(new ai.steering.Arrive(this.kinematics(), food_target));
+				this.steering.push(new ai.steering.Arrive(this.kinematics(), food_target));
 			} else if(actions.indexOf('pickup_food_action') >= 0) {
 				this.inventory = true;
 			} else if(actions.indexOf('is_home_action') >= 0) {
 				this.inventory = false;
 			} else if(actions.indexOf('seek_home_action') >= 0) {
-				var homes = this.get_closest('home');
-				var home_target = homes[0];
-				steering.push(new ai.steering.Arrive(this.kinematics(), home_target));
+				this.steering.push(new ai.steering.Arrive(this.kinematics(), this.get_closest('home')[0]));
 			}
-			var actuated_steering = this.actuate(steering.get(), elapsed);
-			this.animate();
-			this.velocity = actuated_steering.velocity;
-			this.rotation = actuated_steering.rotation;
-			this._super(elapsed);
 		},
 
 		actuate : function(output, elapsed) {
 			var new_velocity = this.get_actuated_velocity(output, elapsed);
-			return {
-				velocity: {
+			this.velocity = {
 					x : new_velocity.e(1),
 					y : new_velocity.e(2)
-				},
-				rotation: this.get_actuated_rotation(output, elapsed)
 			};
+			this.rotation = this.get_actuated_rotation(output, elapsed)
 		},
 
 		get_actuated_velocity: function(output, elapsed) {
@@ -182,6 +176,24 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 		}
 
 	});
+
+	// Factory method
+	Ant.create = function(position, velocity, layer) {
+
+		return new Ant({
+			size : { width: 7, height: 5 },
+			collision : { width: 5, height: 3 },
+			max_velocity : 60,
+			max_acceleration : 0.1,
+			max_angular_velocity : 0.5,
+			max_angular_acceleration : 0.2,
+			src: new pulse.Texture({filename: 'img/ant3.png'}),
+			position: position,
+			layer: layer,
+			velocity: {x: velocity[0], y:velocity[1]},
+			static: false
+		}, State.find_food);
+	}
 
 	return Ant;
 });

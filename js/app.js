@@ -34,10 +34,10 @@ define(["game", "gameobject", "ant", "kdTree"], function(Game, GameObject, Ant){
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			layer.addNode(create_ant({x: 160, y:160}, [0, 0], 0, layer));
+			layer.addNode(Ant.create({x: 160, y:160}, [0, 0], 0, layer));
 
 			for (var i = 0; i < 20; i++) {
-				layer.addNode(create_ant({x: Math.random()*960, y:Math.random()*320}, [0, 0], 0, layer));
+				layer.addNode(Ant.create({x: Math.random()*960, y:Math.random()*320}, [0, 0], layer));
 			//	layer.addNode(create_stone([Math.random()*960,Math.random()*320], layer));
 			}
 
@@ -59,20 +59,10 @@ define(["game", "gameobject", "ant", "kdTree"], function(Game, GameObject, Ant){
 			window.engine.scenes.activateScene(scene);
 
 			layer.on('mouseup', function(args) {
-				layer.addNode(create_ant(args.position, [0, 0], Math.random()*360, layer));
+				layer.addNode(Ant.create(args.position, [0, 0], Math.random()*360, layer));
 			});
 
 			window.engine.go(30, update);
-		});
-	};
-
-	var create_ant = function (position, velocity, rotation, layer) {
-		return new Ant({
-			position: position,
-			layer: layer,
-			velocity: {x: velocity[0], y:velocity[1]},
-			rotation: rotation,
-			static: false
 		});
 	};
 

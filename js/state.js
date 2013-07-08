@@ -42,8 +42,8 @@ define(['class'], function () {
 	});
 
 	State.state_pickup_food = Class.extend({
-		init: function(ant) {
-			this.ant = ant;
+		init: function(owner) {
+			this.owner = owner;
 		},
 		get_entry_action: function() {
 			return 'starting_pickup_food_action';
@@ -56,14 +56,14 @@ define(['class'], function () {
 		},
 		get_transitions: function() {
 			return [
-				new Transition.carries_food(this.ant)
+				new Transition.carries_food(this.owner)
 			];
 		}
 	});
 
 	State.find_food = Class.extend({
-		init: function(ant) {
-			this.ant = ant;
+		init: function(owner) {
+			this.owner = owner;
 		},
 		get_entry_action: function() {
 			return 'starting_seek_food_action';
@@ -79,14 +79,14 @@ define(['class'], function () {
 
 		get_transitions: function() {
 			return [
-				new Transition.found_food(this.ant)
+				new Transition.found_food(this.owner)
 			];
 		}
 	});
 
 	State.state_go_home = Class.extend({
-		init: function(ant) {
-			this.ant = ant;
+		init: function(owner) {
+			this.owner = owner;
 		},
 		get_entry_action: function() {
 			return 'starting_seek_home_action';
@@ -99,19 +99,19 @@ define(['class'], function () {
 		},
 		get_transitions: function() {
 			return [
-				new Transition.is_home(this.ant)
+				new Transition.is_home(this.owner)
 			];
 		}
 	});
 
 	Transition.found_food = Class.extend({
-		init: function(ant) {
-			this.ant = ant;
+		init: function(owner) {
+			this.owner = owner;
 		},
 		is_triggered: function() {
-			var food_items = this.ant.get_closest('food');
+			var food_items = this.owner.get_closest('food');
 			for(var key in food_items) {
-				var distance = food_items[key].position.distanceFrom(this.ant.kinematics().position);
+				var distance = food_items[key].position.distanceFrom(this.owner.kinematics().position);
 				if(distance < 8) {
 					return true;
 				}
@@ -119,7 +119,7 @@ define(['class'], function () {
 			return false;
 		},
 		get_target_state: function() {
-			return new State.state_pickup_food(this.ant);
+			return new State.state_pickup_food(this.owner);
 		},
 		get_action: function() {
 			return 'found_food_action';
@@ -127,14 +127,14 @@ define(['class'], function () {
 	});
 
 	Transition.carries_food = Class.extend({
-		init: function(ant) {
-			this.ant = ant;
+		init: function(owner) {
+			this.owner = owner;
 		},
 		is_triggered: function() {
-			return this.ant.carries('food');
+			return this.owner.carries('food');
 		},
 		get_target_state: function() {
-			return new State.state_go_home(this.ant);
+			return new State.state_go_home(this.owner);
 		},
 		get_action: function() {
 			return 'have_food_action';
@@ -142,13 +142,13 @@ define(['class'], function () {
 	});
 
 	Transition.is_home = Class.extend({
-		init: function(ant) {
-			this.ant = ant;
+		init: function(owner) {
+			this.owner = owner;
 		},
 		is_triggered: function() {
-			var homes = this.ant.get_closest('home');
+			var homes = this.owner.get_closest('home');
 			for(var key in homes) {
-				var distance = homes[key].position.distanceFrom(this.ant.kinematics().position);
+				var distance = homes[key].position.distanceFrom(this.owner.kinematics().position);
 				if(distance < 10) {
 					return true;
 				}
@@ -157,7 +157,7 @@ define(['class'], function () {
 
 		},
 		get_target_state: function() {
-			return new State.find_food(this.ant);
+			return new State.find_food(this.owner);
 		},
 		get_action: function() {
 			return 'is_home_action';
