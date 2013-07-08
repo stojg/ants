@@ -1,6 +1,6 @@
 define(['pulse', 'libs/sylvester.src'], function (pulse) {
 
-	Movable = pulse.Sprite.extend({
+	var GameObject = pulse.Sprite.extend({
 
 		init : function(args) {
 			args = args || {};
@@ -176,5 +176,6 @@ define(['pulse', 'libs/sylvester.src'], function (pulse) {
 			});
 		}
 	});
-	return Movable;
+	
+	return GameObject;
 });

@@ -1,4 +1,4 @@
-define(["game", "state", "ant", "libs/kd-tree/kdTree"], function(Game, state, Ant, PriorityQueue){
+define(["game", "gameobject", "ant", "libs/kd-tree/kdTree"], function(Game, GameObject, Ant, PriorityQueue){
 
 	var init = function() {
 
@@ -76,7 +76,7 @@ define(["game", "state", "ant", "libs/kd-tree/kdTree"], function(Game, state, An
 	};
 
 	var create_stone = function(position, layer) {
-		return new Movable({
+		return new GameObject({
 			src: 'img/stone.png',
 			position: {x:position[0], y:position[1]},
 			layer: layer,
@@ -89,7 +89,7 @@ define(["game", "state", "ant", "libs/kd-tree/kdTree"], function(Game, state, An
 	};
 
 	var create_horizontal_wall = function(position, layer) {
-		return new Movable({
+		return new GameObject({
 			src: 'img/horizontal.png',
 			position: {x:position[0], y:position[1]},
 			layer: layer,
@@ -100,7 +100,7 @@ define(["game", "state", "ant", "libs/kd-tree/kdTree"], function(Game, state, An
 	};
 
 	var create_vertical_wall = function(position, layer) {
-		return new Movable({
+		return new GameObject({
 			src: 'img/vertical.png',
 			position: {x:position[0], y:position[1]},
 			layer: layer,
@@ -112,7 +112,7 @@ define(["game", "state", "ant", "libs/kd-tree/kdTree"], function(Game, state, An
 
 	var create_home = function(position, layer) {
 		var home = new pulse.Texture({filename: 'img/home.png'});
-		return new Movable({
+		return new GameObject({
 			src: home,
 			position: {x:position[0], y:position[1]},
 			layer: layer,
@@ -125,7 +125,7 @@ define(["game", "state", "ant", "libs/kd-tree/kdTree"], function(Game, state, An
 
 	var create_food = function(position, layer) {
 		var food = new pulse.Texture({filename: 'img/food.png'});
-		return new Movable({
+		return new GameObject({
 			src: food,
 			position: {x:position[0], y:position[1]},
 			layer: layer,

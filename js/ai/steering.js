@@ -400,19 +400,6 @@ define(['class', 'libs/sylvester.src'], function() {
 			var b = collision.normal.multiply(this.avoidDistance);
 
 			this.target.position = collision.position.add(b);
-			/*var main_scene = window.engine.scenes.getScene('main');
-			var debug_layer = main_scene.getLayer('debug');
-			debug_layer.addNode(
-				new Movable({
-					src: 'img/food.png',
-					position: {x:this.target.position.e(1), y:this.target.position.e(2)},
-					size: {x: 2, y: 2},
-					static: true,
-					collidable: false,
-					type: 'debug'
-				})
-			);
-			*/
 			return this._super();
 		}
 	});

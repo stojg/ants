@@ -1,4 +1,4 @@
-define(['movable', 'pulse'], function(Movable) {
+define(['pulse'], function() {
 	//Do setup work here
 	var game = game || {};
 
