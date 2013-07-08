@@ -1,4 +1,4 @@
-define(["game", "state", "ant", "libs/kd-tree/kdTree"], function(Game, state, ant, PriorityQueue){
+define(["game", "state", "ant", "libs/kd-tree/kdTree"], function(Game, state, Ant, PriorityQueue){
 
 	var init = function() {
 

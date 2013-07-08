@@ -1,6 +1,6 @@
 define(['pulse', 'movable', 'state', 'ai/steering', 'libs/sylvester.src'], function (pulse, Movable, State) {
 
-	Ant = Movable.extend({
+	var Ant = Movable.extend({
 		init : function(args) {
 			args = args || {};
 			args.src = new pulse.Texture({filename: 'img/ant3.png'});
@@ -182,4 +182,6 @@ define(['pulse', 'movable', 'state', 'ai/steering', 'libs/sylvester.src'], funct
 		}
 
 	});
+
+	return Ant;
 });
