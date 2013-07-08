@@ -3,13 +3,12 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 	var Ant = GameObject.extend({
 		inventory: false,
 		
-		init : function(args, initial_state, steering) {
+		init : function(args, initial_state, collision) {
 			args = args || {};
 			args.type = 'ant';
-			this._super(args);
+			this._super(args, collision);
 			this.setup_animations();
 			this.statemachine = new State.Machine(new initial_state(this));
-			this.steering = steering
 		},
 
 		carries: function(what) {
@@ -24,10 +23,9 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 			this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
 
 			this.update_state();
-			var actuated_steering = this.actuate(this.steering.get(), elapsed);
-			this.animate();
-			
+			this.actuate(this.steering.get(), elapsed);
 			this._super(elapsed);
+			this.animate();
 		},
 
 		update_state: function(elapsed) {
@@ -164,7 +162,7 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 	});
 
 	// Factory method
-	Ant.create = function(position, velocity, layer) {
+	Ant.create = function(position, layer, collision) {
 
 		return new Ant({
 			size : { width: 7, height: 5 },
@@ -176,9 +174,8 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 			src: new pulse.Texture({filename: 'img/ant3.png'}),
 			position: position,
 			layer: layer,
-			velocity: {x: velocity[0], y:velocity[1]},
 			static: false
-		}, State.find_food);
+		}, State.find_food, collision);
 	}
 
 	return Ant;

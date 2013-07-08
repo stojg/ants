@@ -1,4 +1,4 @@
-define(["game", "gameobject", "ant", "kdTree"], function(Game, GameObject, Ant){
+define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, GameObject, Ant, Collision){
 
 	var init = function() {
 
@@ -34,13 +34,19 @@ define(["game", "gameobject", "ant", "kdTree"], function(Game, GameObject, Ant){
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			layer.addNode(Ant.create({x: 160, y:160}, [0, 0], 0, layer));
+			//layer.addNode(Ant.create({x: 160, y:160}, [0, 0], 0, layer));
 
-			for (var i = 0; i < 20; i++) {
-				layer.addNode(Ant.create({x: Math.random()*960, y:Math.random()*320}, [0, 0], layer));
-			//	layer.addNode(create_stone([Math.random()*960,Math.random()*320], layer));
+			for (var i = 0; i < 40; i++) {
+				layer.addNode(Ant.create({
+					x: Math.random()*960,
+					y:Math.random()*320
+				}, layer, new Collision.Circle(3)));
+
+				
 			}
-
+			for (var i = 0; i < 20; i++) {
+				layer.addNode(create_stone([(Math.random()*960), (Math.random()*320)], layer));
+			}
 			layer.addNode(create_stone([300,140], layer));
 			layer.addNode(create_stone([600,110], layer));
 			layer.addNode(create_vertical_wall([1,160], layer));
@@ -58,11 +64,11 @@ define(["game", "gameobject", "ant", "kdTree"], function(Game, GameObject, Ant){
 			window.engine.scenes.addScene(scene);
 			window.engine.scenes.activateScene(scene);
 
-			layer.on('mouseup', function(args) {
-				layer.addNode(Ant.create(args.position, [0, 0], Math.random()*360, layer));
-			});
+			//layer.on('mouseup', function(args) {
+			//	layer.addNode(Ant.create(args.position, [0, 0], Math.random()*360, layer));
+			//	});
 
-			window.engine.go(30, update);
+			window.engine.go(1, update);
 		});
 	};
 
@@ -72,11 +78,10 @@ define(["game", "gameobject", "ant", "kdTree"], function(Game, GameObject, Ant){
 			position: {x:position[0], y:position[1]},
 			layer: layer,
 			size: {x: 20, y: 20},
-			collision: { width: 18, height: 18 },
 			anchor: {x: 0.5, y: 0.5},
 			static: true,
 			type: 'obstacle'
-		});
+		}, new Collision.Circle(10));
 	};
 
 	var create_horizontal_wall = function(position, layer) {

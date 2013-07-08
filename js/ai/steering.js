@@ -422,9 +422,9 @@ define(['class', 'vector'], function() {
 
 	ai.steering.ObstacleAvoidance = ai.steering.Seek.extend({
 		init: function(character, targets) {
-			this.CollisionDetector = new ai.steering.CollisionDetector(targets);
+			this.CollisionDetector = new ai.steering.CollisionDetector(character, targets);
 			this.avoidDistance = 15;
-			this.lookahead = 100;
+			this.lookahead = 50;
 			this._super(character, new ai.steering.Kinematics());
 		},
 		get: function() {
@@ -497,13 +497,12 @@ define(['class', 'vector'], function() {
 	});
 
 	ai.steering.CollisionDetector = Class.extend({
-		init: function(targets) {
+		init: function(character, targets) {
+			this.character = character;
 			this.entities = targets;
 		},
 		getCollision: function(position, ray) {
-			var rayLength = ray.length();
-			// get from character
-			var totalRadius = 6;
+			var totalRadius = this.character.radius
 			for (var i = this.entities.length - 1; i >= 0; i--) {
 				var entity = this.entities[i];
 				
@@ -511,13 +510,12 @@ define(['class', 'vector'], function() {
 				var E = position;
 				var L = position.add(ray);
 				var C = entity.position;
-				var r = entity.radius+totalRadius;
+				var r = entity.radius+totalRadius+1;
 
 				// direction vector
 				var d = ray;
 				// vector from sphere to start
 				var f = E.subtract(C);
-
 
 				var a = d.dot(d);
 				var b = 2*f.dot(d);
@@ -529,7 +527,6 @@ define(['class', 'vector'], function() {
 				if(discriminant < 0 ) {
 					continue;
 				}
-
 
 				// ray didn't totally miss sphere,
 				// so there is a solution to
