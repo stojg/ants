@@ -1,4 +1,4 @@
-define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue){
+define(["game", "state", "ant", "libs/kd-tree/kdTree"], function(Game, state, ant, PriorityQueue){
 
 	var init = function() {
 
@@ -36,9 +36,9 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			
 			layer.addNode(create_ant({x: 160, y:160}, [0, 0], 0, layer));
 
-			for (var i = 0; i < 20; i++) {
-				layer.addNode(create_stone([Math.random()*960,Math.random()*320], layer));
-			}
+			//for (var i = 0; i < 20; i++) {
+			//	layer.addNode(create_stone([Math.random()*960,Math.random()*320], layer));
+			//}
 
 			layer.addNode(create_stone([300,140], layer));
 			layer.addNode(create_stone([600,110], layer));
@@ -54,12 +54,6 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 			scene.addLayer(bg_layer);
 			scene.addLayer(layer);
 
-			var debug_layer = new pulse.Layer();
-			debug_layer.position = {x: 0, y: 0};
-			debug_layer.anchor = {x: 0, y: 0};
-			debug_layer.name = 'debug';
-			scene.addLayer(debug_layer);
-
 			window.engine.scenes.addScene(scene);
 			window.engine.scenes.activateScene(scene);
 
@@ -67,7 +61,7 @@ define(["game", "ant", "libs/kd-tree/kdTree"], function(Game, ant, PriorityQueue
 				layer.addNode(create_ant(args.position, [0, 0], Math.random()*360, layer));
 			});
 
-			window.engine.go(30, update);
+			window.engine.go(1, update);
 		});
 	};
 
