@@ -36,7 +36,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 			
 			//layer.addNode(Ant.create({x: 160, y:160}, [0, 0], 0, layer));
 
-			for (var i = 0; i < 40; i++) {
+			for (var i = 0; i < 10; i++) {
 				layer.addNode(Ant.create({
 					x: Math.random()*960,
 					y:Math.random()*320
