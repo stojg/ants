@@ -25,6 +25,10 @@ define(['class'], function () {
 				var objectA = this.objects[i];
 				for (var j = (i+1); j < this.count() ; j++) {
 					var objectB = this.objects[j];
+					if(objectA.static && objectB.static) {
+						continue;
+					}
+					//console.log(objectB.position);
 					this.collisionCheck(objectA, objectB);
 				}
 			};
@@ -42,12 +46,52 @@ define(['class'], function () {
 					var change = this.collisions[name][i].result;
 					
 					// @todo calculate speed difference
-					var percentage = 0.5;
+					var aSpeedX = a.position.x - a.positionPrevious.x;
+					var aSpeedY = a.position.y - a.positionPrevious.y;
+
+					var bSpeedX = b.position.x - b.positionPrevious.x;
+					var bSpeedY = b.position.y - b.positionPrevious.y;
+
+					var aSpeed = Math.sqrt(aSpeedX*aSpeedX+aSpeedY*aSpeedY);
+					var bSpeed = Math.sqrt(bSpeedX*bSpeedX+bSpeedY*bSpeedY);
+
+					var relativeSpeed = aSpeed + bSpeed;
+
+					if(a.static) {
+						b.position.x -= change[0];
+						b.position.y -= change[1];
+						continue;
+					}
+
+					if(b.static) {
+						a.position.x += change[0];
+						a.position.y += change[1];
+						continue;
+					}
+
+					if(relativeSpeed == 0) {
+						a.position.x += change[0]*0.5;
+						a.position.y += change[1]*0.5;
+						b.position.x -= change[0]*0.5;
+						b.position.y -= change[1]*0.5;
+						continue;
+					}
+
+					var aSpeedPercentage = aSpeed/relativeSpeed;
+					var bSpeedPercentage = bSpeed/relativeSpeed;
 					
-					a.position.x += change[0]*percentage;
-					a.position.y += change[1]*percentage;
-					b.position.x -= change[0]*(1-percentage);
-					b.position.y -= change[1]*(1-percentage);
+					if(a.SpeedX !== 0) {
+						a.position.x += change[0]*aSpeedPercentage;
+					}
+					if(a.SpeedY !== 0) {
+						a.position.y += change[1]*aSpeedPercentage;
+					}
+					if(b.SpeedX !== 0) {
+						b.position.x -= change[0]*(bSpeedPercentage);
+					}
+					if(b.SpeedY !== 0) {
+						b.position.y -= change[1]*(bSpeedPercentage);
+					}
 				};
 				delete(this.collisions[name]);
 			}

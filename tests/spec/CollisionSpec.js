@@ -83,6 +83,19 @@ define(['collision', 'gameobject'], function(Collision, GameObject) {
       expect(object3.position.y).toEqual(20);
       expect(detector.num_collisions()).toEqual(0);
     });
+
+    it('contact resolution with one stationary', function() {
+      var object1 = {position: {x: 4, y:0},positionPrevious: {x:0, y:0},name: 'object1', get_collision:function() {var t = new Collision.Circle(3);t.set_object(this);return t;}};
+      var object2 = {position: {x: 8, y:0},positionPrevious: {x:8, y:0},name: 'object2',get_collision:function() {var t = new Collision.Circle(3);t.set_object(this);return t;}};
+      var detector = new Collision.Detector({object1: object1, object2: object2});
+      detector.test();
+      detector.resolve();
+      expect(object1.position.x).toEqual(2);
+      expect(object1.position.y).toEqual(0);
+      expect(object2.position.x).toEqual(8);
+      expect(object2.position.y).toEqual(0);
+    });
+
   });
 
   describe("Collision.Circle", function() {

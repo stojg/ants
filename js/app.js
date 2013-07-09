@@ -34,7 +34,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			for (var i = 0; i < 10; i++) {
+			for (var i = 0; i < 40; i++) {
 				layer.addNode(Ant.create({
 					x: Math.random()*960,
 					y: Math.random()*320
@@ -60,9 +60,9 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 			window.engine.scenes.addScene(scene);
 			window.engine.scenes.activateScene(scene);
 
-			//layer.on('mouseup', function(args) {
-			//	layer.addNode(Ant.create(args.position, [0, 0], Math.random()*360, layer));
-			//	});
+			layer.on('mouseup', function(args) {
+				layer.addNode(Ant.create(args.position, layer, new Collision.Circle(3)));
+			});
 
 			window.engine.go(1, update);
 		});
