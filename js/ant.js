@@ -14,16 +14,27 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 		carries: function(what) {
 			return this.inventory;
 		},
-				
-		update : function(elapsed) {
-			this.steering = new ai.steering.PrioritySteering();
-			this.steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
-			var ants = this.get_closest('ant');
-			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
-			this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
+		
+		delta: 0,
 
-			this.update_state();
-			this.actuate(this.steering.get(), elapsed);
+		update : function(elapsed) {
+			this.delta += elapsed;
+			
+
+			//console.log(this.steering);
+			if(this.delta > 50 ) {
+				this.steering = new ai.steering.PrioritySteering();
+				this.steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
+				var ants = this.get_closest('ant');
+				this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
+				this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
+				this.delta = 0;
+				this.update_state();
+			}
+			if(typeof this.steering !== 'undefined') {
+				this.actuate(this.steering.get(), elapsed);	
+			}
+			
 			this._super(elapsed);
 			this.animate();
 		},

@@ -15,6 +15,7 @@ define(['pulse'], function (pulse) {
 
 			if(typeof collision !=='undefined') {
 				this.collision = collision;
+				this.collision.set_object(this);
 			}
 			
 			this.rotation = args.rotation || 0;
@@ -44,17 +45,6 @@ define(['pulse'], function (pulse) {
 		move : function(elapsed) {
 			this.position.x += this.velocity.x*(elapsed/1000);
 			this.position.y += this.velocity.y*(elapsed/1000);
-
-			if(this.collision.colliding() === false) {
-				return;
-			}
-
-			var mtd = this.collision.translation();
-			this.position.x += mtd.x;
-			this.position.y += mtd.y;
-
-			this.velocity.x = 0;
-			this.velocity.y = 0;
 		},
 
 		get_collision: function() {

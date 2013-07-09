@@ -34,15 +34,11 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			//layer.addNode(Ant.create({x: 160, y:160}, [0, 0], 0, layer));
-
 			for (var i = 0; i < 10; i++) {
 				layer.addNode(Ant.create({
 					x: Math.random()*960,
-					y:Math.random()*320
+					y: Math.random()*320
 				}, layer, new Collision.Circle(3)));
-
-				
 			}
 			for (var i = 0; i < 20; i++) {
 				layer.addNode(create_stone([(Math.random()*960), (Math.random()*320)], layer));
@@ -107,9 +103,8 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 	};
 
 	var create_home = function(position, layer) {
-		var home = new pulse.Texture({filename: 'img/home.png'});
 		return new GameObject({
-			src: home,
+			src: new pulse.Texture({filename: 'img/home.png'}),
 			position: {x:position[0], y:position[1]},
 			layer: layer,
 			size: {x: 10, y: 10},
@@ -120,9 +115,8 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 	};
 
 	var create_food = function(position, layer) {
-		var food = new pulse.Texture({filename: 'img/food.png'});
 		return new GameObject({
-			src: food,
+			src: new pulse.Texture({filename: 'img/food.png'}),
 			position: {x:position[0], y:position[1]},
 			layer: layer,
 			size: {x: 4, y: 4},
@@ -134,15 +128,18 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 	
 	var update = function(elapsed) {
 		var main_scene = window.engine.scenes.getScene('main');
-		var action_layer = main_scene.getLayer('action');
-		get_graph(action_layer);
+		var detector = new Collision.Detector(main_scene.getLayer('action').objects);
+		
+		detector.test();
+		detector.resolve();
+		set_graph(main_scene.getLayer('action'));
 	};
 
 	var distance = function(a, b){
 		return Math.pow(a.x - b.x, 2) +  Math.pow(a.y - b.y, 2);
 	}
 
-	var get_graph = function(action_layer) {
+	var set_graph = function(action_layer) {
 		window.engine.graph = window.engine.graph || [];
 		var nodes = action_layer.getNodesByType(pulse.Sprite);
 		var list = [];
