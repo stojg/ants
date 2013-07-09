@@ -2,8 +2,9 @@ define(['class'], function () {
 
 	var Collision = Collision || {};
 
-
 	Collision.Circle = Class.extend({
+		object : false,
+
 		init: function(radius) {
 			this.radius = radius;
 		},
@@ -46,6 +47,7 @@ define(['class'], function () {
 			return this.collisions.length > 0;
 		},
 
+
 		translation: function() {
 			var mtd = {x:0, y:0};
 			for(var key in this.collisions) {
@@ -55,19 +57,51 @@ define(['class'], function () {
 			return mtd;
 		},
 
+		vs_circle: function(other) {
+			var totalRadius = this.get_radius() + other.get_radius();
+			var x = other.get_position().x - this.get_position().x;
+			var y = other.get_position().y - this.get_position().y;
+			var distanceSquared = (x*x)+(y*y);
+
+			if((totalRadius*totalRadius) - distanceSquared <= 0) {
+				return false;
+			}
+			
+			var distance = Math.sqrt(distanceSquared);
+			
+			var transX = 0;
+			if(x!==0) {
+				transX = (x/distance)*(totalRadius-distance);
+			}
+			var transY = 0;
+			if(y!==0) {
+				transY = (y/distance)*(totalRadius-distance);
+			}
+			
+			return [-transX, -transY];
+		},
+
 		circle_vs_circle: function(other) {
 			var totalRadius = this.get_radius() + other.get_collision().get_radius();
 			var x = other.get_collision().get_position().x - this.get_position().x;
 			var y = other.get_collision().get_position().y - this.get_position().y;
-			var depth = (totalRadius*totalRadius) - ((x*x)+(y*y));
-			if(depth <= 0) {
+			var distanceSquared = (x*x)+(y*y);
+
+			if((totalRadius*totalRadius) - distanceSquared <= 0) {
 				return false;
 			}
-			var penDepth = Math.sqrt(depth);
-			var length = Math.sqrt((x*x)+(y*y));
-			var transX = (x/length)*penDepth;
-			var transY = (y/length)*penDepth;
-			//console.log('col '+normX+' '+normY);
+			
+			var distance = Math.sqrt(distanceSquared);
+			
+			var transX = 0;
+			if(x!==0) {
+				transX = (x/distance)*(totalRadius-distance);
+			}
+			var transY = 0;
+			if(y!==0) {
+				transY = (y/distance)*(totalRadius-distance);
+			}
+			
 			return [-transX, -transY];
 		},
 

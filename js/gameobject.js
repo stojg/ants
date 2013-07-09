@@ -6,6 +6,7 @@ define(['pulse'], function (pulse) {
 
 		init : function(args, collision) {
 			args = args || {};
+			args.src = args.src || false;
 			this._super(args);
 
 			this.position = args.position || {x: 0, y: 0};
