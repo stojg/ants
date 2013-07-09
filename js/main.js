@@ -15,7 +15,7 @@ require.config({
 			exports: 'kdTree'
 		}
 	},
-	urlArgs: "version=0.3.4"
+	urlArgs: "version=0.3.5"
 });
 
 require(['app'], function(App) {

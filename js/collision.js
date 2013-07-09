@@ -3,17 +3,17 @@ define(['class'], function () {
 	var Collision = Collision || {};
 
 	Collision.Detector = Class.extend({
-		originals: [],
 		objects: [],
-
+		quad: false,
 		collisions: {},
 
-		init: function(objects) {
+		init: function(objects, quad) {
 		 	this.objects = [];
 		 	this.originals = objects;
 			for (prop in objects) {
   				this.objects.push(objects[prop]);
 			}
+			this.quad = quad;
 		},
 		
 		count: function() {
@@ -23,13 +23,21 @@ define(['class'], function () {
 		test: function() {
 			for (var i = 0; i < this.count(); i++) {
 				var objectA = this.objects[i];
-				for (var j = (i+1); j < this.count() ; j++) {
-					var objectB = this.objects[j];
+				var neighbours = this.quad.retrieve({
+					x: objectA.position.x,
+					y: objectA.position.y,
+					height: objectA.size.x*2,
+					width: objectA.size.y*2
+				});
+				for (var j = 0; j < neighbours.length ; j++) {
+					var objectB = neighbours[j].node;
 					if(objectA.static && objectB.static) {
 						continue;
 					}
-					//console.log(objectB.position);
-					this.collisionCheck(objectA, objectB);
+					if(objectA.name === objectB.name) {
+						continue;
+					}
+					this.hitTest(objectA, objectB);
 				}
 			};
 		},
@@ -45,7 +53,6 @@ define(['class'], function () {
 					var b = (this.originals[resolution[i].with]);
 					var change = this.collisions[name][i].result;
 					
-					// @todo calculate speed difference
 					var aSpeedX = a.position.x - a.positionPrevious.x;
 					var aSpeedY = a.position.y - a.positionPrevious.y;
 
@@ -69,7 +76,7 @@ define(['class'], function () {
 						continue;
 					}
 
-					if(relativeSpeed == 0) {
+					if(relativeSpeed === 0) {
 						a.position.x += change[0]*0.5;
 						a.position.y += change[1]*0.5;
 						b.position.x -= change[0]*0.5;
@@ -105,7 +112,7 @@ define(['class'], function () {
 			this.collisions = {};
 		},
 
-		collisionCheck: function(a, b) {
+		hitTest: function(a, b) {
 			var testA = a.get_collision();
 			var testB = b.get_collision();
 			var result = false;
@@ -126,7 +133,6 @@ define(['class'], function () {
 			if(typeof this.collisions[b.name] === 'undefined') {
 				this.collisions[b.name] = [];	
 			}
-
 			this.collisions[a.name].push({'with': b.name, result: result});
 			this.collisions[b.name].push({'with': a.name, result: [-result[0],-result[1]]});
 		},
@@ -135,7 +141,7 @@ define(['class'], function () {
 			if(typeof this.collisions[a.name] === 'undefined') {
 				return {};
 			}
-			return this.collisions[a.name]
+			return this.collisions[a.name];
 		}
 
 	});
@@ -185,16 +191,6 @@ define(['class'], function () {
 			return this.collisions.length > 0;
 		},
 
-
-		translation: function() {
-			var mtd = {x:0, y:0};
-			for(var key in this.collisions) {
-				mtd.x =+ this.collisions[key][0];
-				mtd.y =+ this.collisions[key][1];
-			}
-			return mtd;
-		},
-
 		vs_circle: function(other) {
 			var totalRadius = this.get_radius() + other.get_radius();
 			var x = other.get_position().x - this.get_position().x;
@@ -223,34 +219,8 @@ define(['class'], function () {
 			}
 
 			return [-transX, -transY];
-		},
-
-		circle_vs_circle: function(other) {
-			var totalRadius = this.get_radius() + other.get_collision().get_radius();
-			var x = other.get_collision().get_position().x - this.get_position().x;
-			var y = other.get_collision().get_position().y - this.get_position().y;
-			var distanceSquared = (x*x)+(y*y);
-
-			if((totalRadius*totalRadius) - distanceSquared <= 0) {
-				return false;
-			}
-			
-			var distance = Math.sqrt(distanceSquared);
-			
-			var transX = 0;
-			if(x!==0) {
-				transX = (x/distance)*(totalRadius-distance);
-			}
-			var transY = 0;
-			if(y!==0) {
-				transY = (y/distance)*(totalRadius-distance);
-			}
-			
-			return [-transX, -transY];
 		}
 	});
-
-
 
 	return Collision;
 

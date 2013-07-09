@@ -1,4 +1,4 @@
-define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, GameObject, Ant, Collision){
+define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], function(Game, GameObject, Ant, Collision){
 
 	var init = function() {
 
@@ -64,6 +64,13 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 				layer.addNode(Ant.create(args.position, layer, new Collision.Circle(3)));
 			});
 
+			var bounds = {
+				x:0,
+				y:0,
+				width:Game.world.width,
+				height:Game.world.height
+			}
+			window.quad = new QuadTree(bounds, true, 10);
 			window.engine.go(1, update);
 		});
 	};
@@ -128,11 +135,11 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 	
 	var update = function(elapsed) {
 		var main_scene = window.engine.scenes.getScene('main');
-		var detector = new Collision.Detector(main_scene.getLayer('action').objects);
-		
+		set_graph(main_scene.getLayer('action'));
+		var detector = new Collision.Detector(main_scene.getLayer('action').objects, window.quad);
 		detector.test();
 		detector.resolve();
-		set_graph(main_scene.getLayer('action'));
+		
 	};
 
 	var distance = function(a, b){
@@ -144,7 +151,17 @@ define(["game", "gameobject", "ant", "collision", "kdTree"], function(Game, Game
 		var nodes = action_layer.getNodesByType(pulse.Sprite);
 		var list = [];
 		list['all']  = [];
+		window.quad.clear();
 		for(var key in nodes) {
+
+			window.quad.insert({
+				x:nodes[key].position.x,
+				y:nodes[key].position.y,
+				height:nodes[key].size.x,
+				width:nodes[key].size.y,
+				node: nodes[key]
+			});
+
 			if(typeof list[nodes[key].type] === 'undefined') {
 				list[nodes[key].type] = [];
 			}
