@@ -22,7 +22,7 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 			
 
 			//console.log(this.steering);
-			if(this.delta > 50 ) {
+			if(this.delta > 100 ) {
 				this.steering = new ai.steering.PrioritySteering();
 				this.steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
 				var ants = this.get_closest('ant');

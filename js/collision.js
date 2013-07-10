@@ -5,11 +5,13 @@ define(['class'], function () {
 	Collision.Detector = Class.extend({
 		objects: [],
 		quad: false,
+		checked_pairs: [],
 		collisions: {},
 
 		init: function(objects, quad) {
 		 	this.objects = [];
 		 	this.originals = objects;
+			this.checked_pairs = [];
 			for (prop in objects) {
   				this.objects.push(objects[prop]);
 			}
@@ -21,25 +23,62 @@ define(['class'], function () {
 		},
 
 		test: function() {
+			
 			for (var i = 0; i < this.count(); i++) {
 				var objectA = this.objects[i];
+				
+				if(objectA.static) {
+					continue;
+				}
+
 				var neighbours = this.quad.retrieve({
 					x: objectA.position.x,
 					y: objectA.position.y,
 					height: objectA.size.x*2,
 					width: objectA.size.y*2
 				});
+				
 				for (var j = 0; j < neighbours.length ; j++) {
 					var objectB = neighbours[j].node;
-					if(objectA.static && objectB.static) {
+					if(this.has_been_checked(objectA, objectB)) {
 						continue;
 					}
+					this.add_to_checked(objectA, objectB);
+
 					if(objectA.name === objectB.name) {
 						continue;
 					}
+					
 					this.hitTest(objectA, objectB);
 				}
 			};
+		},
+
+		add_to_checked: function(a, b) {
+			if(typeof this.checked_pairs[a.name] === 'undefined') {
+				this.checked_pairs[a.name] = [];
+			}
+			if(typeof this.checked_pairs[a.name][b.name] === 'undefined') {
+				this.checked_pairs[a.name][b.name] = true;
+			}
+			if(typeof this.checked_pairs[b.name] === 'undefined') {
+				this.checked_pairs[b.name] = [];
+			}
+			if(typeof this.checked_pairs[a.name][a.name] === 'undefined') {
+				this.checked_pairs[b.name][a.name] = true;
+			}
+		},
+
+		has_been_checked: function(a, b) {
+			if(typeof this.checked_pairs[a.name] === 'undefined') {
+				return false;
+			}
+
+			if(typeof this.checked_pairs[b.name] === 'undefined') {
+				return false;
+			}
+
+			return this.checked_pairs[b.name];
 		},
 
 		resolve: function() {
@@ -110,6 +149,7 @@ define(['class'], function () {
 
 		reset: function() {
 			this.collisions = {};
+			this.checked_pairs = [];
 		},
 
 		hitTest: function(a, b) {

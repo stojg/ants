@@ -64,15 +64,18 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 				layer.addNode(Ant.create(args.position, layer, new Collision.Circle(3)));
 			});
 
-			var bounds = {
-				x:0,
-				y:0,
-				width:Game.world.width,
-				height:Game.world.height
-			}
+			var bounds = {x:0,y:0,width:Game.world.width,height:Game.world.height}
 			window.quad = new QuadTree(bounds, true, 10);
-			window.engine.go(1, update);
+			window.engine.go(30, update);
 		});
+	};
+
+	var update = function(elapsed) {
+		var main_scene = window.engine.scenes.getScene('main');
+		set_graph(main_scene.getLayer('action'));
+		var detector = new Collision.Detector(main_scene.getLayer('action').objects, window.quad);
+		detector.test();
+		detector.resolve();
 	};
 
 	var create_stone = function(position, layer) {
@@ -133,15 +136,6 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 		});
 	};
 	
-	var update = function(elapsed) {
-		var main_scene = window.engine.scenes.getScene('main');
-		set_graph(main_scene.getLayer('action'));
-		var detector = new Collision.Detector(main_scene.getLayer('action').objects, window.quad);
-		detector.test();
-		detector.resolve();
-		
-	};
-
 	var distance = function(a, b){
 		return Math.pow(a.x - b.x, 2) +  Math.pow(a.y - b.y, 2);
 	}
@@ -153,7 +147,6 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 		list['all']  = [];
 		window.quad.clear();
 		for(var key in nodes) {
-
 			window.quad.insert({
 				x:nodes[key].position.x,
 				y:nodes[key].position.y,
@@ -161,7 +154,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 				width:nodes[key].size.y,
 				node: nodes[key]
 			});
-
+			
 			if(typeof list[nodes[key].type] === 'undefined') {
 				list[nodes[key].type] = [];
 			}
