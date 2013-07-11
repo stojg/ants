@@ -158,7 +158,7 @@ define(['class'], function () {
 		},
 
 		subtract_vector: function(v1, v2) {
-			this._vcheck(v1,v2);
+			this._vcheck(v1, v2);
 			return {
 				x: v1.x - v2.x,
 				y: v1.y - v2.y
@@ -168,7 +168,7 @@ define(['class'], function () {
 			this._vcheck(a,b);
 			return {
 				x: a.x + b.x,
-				y: b.y + b.y
+				y: a.y + b.y
 			};
 		},
 		multiply_vector: function(v1, scalar) {
@@ -250,23 +250,21 @@ define(['class'], function () {
 
 		vs_circle: function(other) {
 			
-			var direction = this.subtract_vector(this.position, other.position);
+			var direction = this.subtract_vector(this.get_position(), other.position);
 			var distSqr = this.vector_length_squared(direction);
 
 			// Edgecase 1. Circles are on top of each other
 			if(distSqr === 0) {
-				return {
-					position: this.position,
-					normal: {x:0, y:0}
-				};
+				return { position: this.position, normal: {x:0, y:0}};
 			}
 			
 			// Circle center is inside the other cirlce
-			if(other.get_radius()*other.get_radius() >= distSqr) {
+			if(other.get_radius()*other.get_radius() > distSqr) {
 				var norm = this.normalize_vector(direction)
 				var normDirection = this.multiply_vector(norm, other.get_radius());
+				var goTo = this.add_vector(other.get_position(),normDirection);
 				return {
-					position: this.add_vector(normDirection, other.get_position()),
+					position: goTo,
 					normal: norm
 				};
 			}
