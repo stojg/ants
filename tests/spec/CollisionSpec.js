@@ -216,17 +216,6 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 				detector.reset();
 			});
 
-			it('should have found 1 collision pair', function() {
-				detector.test();
-				expect(detector.num_collisions()).toEqual(1);
-			});
-
-			it('should have no collision after a reset()', function() {
-				detector.test();
-				detector.reset();
-				expect(detector.num_collisions()).toEqual(0);
-			});
-
 			it('should have detected that object1 collided with object2', function() {
 				detector.test();
 				expect(detector.who_collided_with('object1')).toEqual([{with : 'object2', result: getResponse(3,0,-1,0)}]);
@@ -255,19 +244,19 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 		var object3;
 
 		beforeEach(function() {
-			object1 = createObject('moving', 4, 0, 0, 0, 3);
-			object2 = createObject('obstacle', 6, 0, 0, 0, 10);
-			object3 = createObject('object3', 20, 20, 0, 0, 3);
+			object1 = createObject('object1', 4, 0, 0, 0, 3, 3, 3);
+			object2 = createObject('object2', 6, 0, 0, 0, 3, 3, 3);
+			object3 = createObject('object3', 20, 20, 0, 0, 3, 3, 3);
 			detector = getCollisionDetector(object1, object2, object3);
 			detector.test();
 		});
 
 		it('should have moved object1 back', function() {
 			detector.resolve();
-			expect(object1.position).toEqual({x: 11, y: 0});
+			expect(object1.position).toEqual({x: 0, y: 0});
 		});
 
-		it('should have moved object2 back', function() {
+		it('should not have moved object2 back', function() {
 			detector.resolve();
 			expect(object2.position).toEqual({x: 6, y: 0});
 		});
@@ -277,10 +266,5 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 			expect(object3.position).toEqual({x: 20, y: 20});
 		});
 
-		it('should have 1 collision pair before resolve and 0 after', function() {
-			expect(detector.num_collisions()).toEqual(1);
-			detector.resolve();
-			expect(detector.num_collisions()).toEqual(0);
-		});
 	});
 });

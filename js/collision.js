@@ -145,11 +145,14 @@ define(['class'], function () {
 
 		_vcheck: function() {
 			for(var i=0;i<arguments.length;i++) {
-				if(isNaN(arguments[i].x)) {
+				if(typeof arguments[i] !== 'object') {
 					throw new Error('Vector is not a proper vector: "'+arguments[i]+'"');
 				}
+				if(isNaN(arguments[i].x)) {
+					throw new Error('Vector.x is not a proper vector: "'+arguments[i]+'"');
+				}
 				if(isNaN(arguments[i].y)) {
-					throw new Error('Vector is not a proper vector: "'+arguments[i]+'"');
+					throw new Error('Vector.y is not a proper vector: "'+arguments[i]+'"');
 				}
 			}
 		},
@@ -162,7 +165,7 @@ define(['class'], function () {
 			};
 		},
 		add_vector: function(a, b) {
-			this._vcheck(v1,v2);
+			this._vcheck(a,b);
 			return {
 				x: a.x + b.x,
 				y: b.y + b.y
@@ -246,9 +249,11 @@ define(['class'], function () {
 		},
 
 		vs_circle: function(other) {
-			// Edgecase 1. Circles are on top of each other
-			var distSqr = this.vector_length_squared(other.position, this.position);
 			
+			var direction = this.subtract_vector(this.position, other.position);
+			var distSqr = this.vector_length_squared(direction);
+
+			// Edgecase 1. Circles are on top of each other
 			if(distSqr === 0) {
 				return {
 					position: this.position,
@@ -256,15 +261,18 @@ define(['class'], function () {
 				};
 			}
 			
-			var combinedRadius = this.get_radius() + other.get_radius();
-
-			// Circle center is inside the radius
-			if(combinedRadius*combinedRadius >= distSqr) {
-				
+			// Circle center is inside the other cirlce
+			if(other.get_radius()*other.get_radius() >= distSqr) {
+				var norm = this.normalize_vector(direction)
+				var normDirection = this.multiply_vector(norm, other.get_radius());
+				return {
+					position: this.add_vector(normDirection, other.get_position()),
+					normal: norm
+				};
 			}
 
+			var combinedRadius = this.get_radius() + other.get_radius();
 			var circle = new Collision.Circle(other.get_position(), combinedRadius);
-
 			var hit = circle.vs_point(this.get_position());
 			if(hit !== false) {
 				var line = new Collision.Segment(other.get_position(), this.get_position());
@@ -357,12 +365,13 @@ define(['class'], function () {
 					console.log('smack!');
 					return false;
 				} else if(t1<0 && t2 > 0) {
+					//console.log('Fully inside', t1, t2);
 					return false;
-					var test = this.multiply_vector({x:1,y:1}, circle.get_radius());
-					hit = this.add_vector(circle.get_position(), test);
-					collision.position = this.subtract_vector(circle.get_position(), {x:circle.get_radius(),y:circle.get_radius()});
+				} else if(t1<0 && t2<0) {
+					//console.log('Past',t1,t2);
+					return false;
 				} else {
-					console.log('wierd case');
+					//console.log('Fell short',t1,t2);
 					return false;
 				}
 				
