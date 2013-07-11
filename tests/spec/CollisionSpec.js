@@ -7,14 +7,15 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 		}
 	}
 
-	var createObject = function(name, posX, posY, velX, velY, sizeX, sizeY) {
+	var createObject = function(name, posX, posY, velX, velY, sizeX, sizeY, radius) {
 		return {
 			position: {x: posX, y: posY},
 			velocity: {x: velX, y: velY},
 			size: {x: sizeX, y: sizeY},
 			name: name,
+			radius: radius,
 			get_collision: function() {
-				return new Collision.Circle(this.position, 3);
+				return new Collision.Circle(this.position, this.radius);
 			}
 		};
 	};
@@ -37,74 +38,79 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 
 	describe("Collision.Segment", function() {
 		it("1. get_start_position() should return correct value", function() {
-			var segment = new Collision.Segment({x:5,y:5},{x:0,y:0});
-			expect(segment.get_start_position()).toEqual({x:5,y:5});
+			var segment = new Collision.Segment({x: 5, y: 5}, {x: 0, y: 0});
+			expect(segment.get_start_position()).toEqual({x: 5, y: 5});
 		});
 		it("2. get_end_position() should return correct value", function() {
-			var segment = new Collision.Segment({x:0,y:0},{x:5,y:5});
-			expect(segment.get_end_position()).toEqual({x:5,y:5});
+			var segment = new Collision.Segment({x: 0, y: 0}, {x: 5, y: 5});
+			expect(segment.get_end_position()).toEqual({x: 5, y: 5});
 		});
 
 		it("3. vs_circle() should fall short →", function() {
-			var circle = new Collision.Circle({x: 10, y:0}, 4);
-			var segment = new Collision.Segment({x:0,y:0},{x:5,y:0});
+			var circle = new Collision.Circle({x: 10, y: 0}, 4);
+			var segment = new Collision.Segment({x: 0, y: 0}, {x: 5, y: 0});
 			expect(segment.vs_circle(circle)).toEqual(false);
 		});
 
 		it("4. vs_circle() up-down should fall short ↓", function() {
-			var circle = new Collision.Circle({x:0, y:0}, 4);
-			var segment = new Collision.Segment({x:0,y:10},{x:0,y:5});
+			var circle = new Collision.Circle({x: 0, y: 0}, 4);
+			var segment = new Collision.Segment({x: 0, y: 10}, {x: 0, y: 5});
 			expect(segment.vs_circle(circle)).toEqual(false);
 		});
 
 		it("5. vs_circle() left-right should be past →", function() {
-			var circle = new Collision.Circle({x:0, y:0}, 4);
-			var segment = new Collision.Segment({x:5,y:0},{x:10,y:0});
+			var circle = new Collision.Circle({x: 0, y: 0}, 4);
+			var segment = new Collision.Segment({x: 5, y: 0}, {x: 10, y: 0});
 			expect(segment.vs_circle(circle)).toEqual(false);
 		});
-		
+
 		it("6. vs_circle() down-up should be past ↑", function() {
-			var circle = new Collision.Circle({x:0, y:0}, 4);
-			var segment = new Collision.Segment({x:0,y:5},{x:0,y:10});
+			var circle = new Collision.Circle({x: 0, y: 0}, 4);
+			var segment = new Collision.Segment({x: 0, y: 5}, {x: 0, y: 10});
 			expect(segment.vs_circle(circle)).toEqual(false);
 		});
 
 		it("7. vs_circle() left-right should poke →", function() {
-			var circle = new Collision.Circle({x:0, y:0}, 5);
-			var segment = new Collision.Segment({x:-10,y:0},{x:-5,y:0});
-			expect(segment.vs_circle(circle)).toEqual(getResponse(-5,0,-1,0));
+			var circle = new Collision.Circle({x: 0, y: 0}, 5);
+			var segment = new Collision.Segment({x: -10, y: 0}, {x: -5, y: 0});
+			expect(segment.vs_circle(circle)).toEqual(getResponse(-5, 0, -1, 0));
 		});
 
 		it("8. vs_circle() down-up should poke ↑", function() {
-			var circle = new Collision.Circle({x:0, y:0}, 5);
-			var segment = new Collision.Segment({x:0, y:10},{x:0,y:5});
-			expect(segment.vs_circle(circle)).toEqual(getResponse(0,5,0,1));
+			var circle = new Collision.Circle({x: 0, y: 0}, 5);
+			var segment = new Collision.Segment({x: 0, y: 10}, {x: 0, y: 5});
+			expect(segment.vs_circle(circle)).toEqual(getResponse(0, 5, 0, 1));
 		});
 
 		it("9. vs_circle() right-left should poke ←", function() {
-			var circle = new Collision.Circle({x:0, y:0}, 5);
-			var segment = new Collision.Segment({x:10,y:0},{x:5,y:0});
+			var circle = new Collision.Circle({x: 0, y: 0}, 5);
+			var segment = new Collision.Segment({x: 10, y: 0}, {x: 5, y: 0});
 			expect(segment.vs_circle(circle)).toEqual(getResponse(5, 0, 1, 0));
 		});
 
 		it("10. vs_circle() up-down should poke ↓", function() {
-			var circle = new Collision.Circle({x:0, y:0}, 5);
-			var segment = new Collision.Segment({x:0,y:10},{x:0,y:5});
+			var circle = new Collision.Circle({x: 0, y: 0}, 5);
+			var segment = new Collision.Segment({x: 0, y: 10}, {x: 0, y: 5});
 			expect(segment.vs_circle(circle)).toEqual(getResponse(0, 5, 0, 1));
 		});
 
 		it("11 .vs_circle() left-right should impale →", function() {
-			var circle = new Collision.Circle({x:0, y:0}, 5);
-			var segment = new Collision.Segment({x:-20,y:0},{x:20,y:0});
-			expect(segment.vs_circle(circle)).toEqual(getResponse(-5,0, -1,0));
+			var circle = new Collision.Circle({x: 0, y: 0}, 5);
+			var segment = new Collision.Segment({x: -20, y: 0}, {x: 20, y: 0});
+			expect(segment.vs_circle(circle)).toEqual(getResponse(-5, 0, -1, 0));
 		});
 
 		it("12. vs_circle() right-left should impale ←", function() {
-			var circle = new Collision.Circle({x:0, y:0}, 5);
-			var segment = new Collision.Segment({x:20,y:0},{x:-20,y:0});
-			expect(segment.vs_circle(circle)).toEqual(getResponse(5,0,1,0));
+			var circle = new Collision.Circle({x: 0, y: 0}, 5);
+			var segment = new Collision.Segment({x: 20, y: 0}, {x: -20, y: 0});
+			expect(segment.vs_circle(circle)).toEqual(getResponse(5, 0, 1, 0));
 		});
 
+		it("13. vs_circle() segment is inside circle should return no hit", function() {
+			var circle = new Collision.Circle({x: 10, y: 10}, 10);
+			var segment = new Collision.Segment({x: 10, y: 10}, {x: 11, y: 10});
+			expect(segment.vs_circle(circle)).toEqual(false);
+		});
 	});
 
 	describe("Collision.Circle", function() {
@@ -140,7 +146,6 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 			expect(circleA.vs_point({x: -5, y: 0})).toEqual(getResponse(-5, 0, 1, 0));
 			expect(circleA.vs_point({x: 0, y: 5})).toEqual(getResponse(0, 5, 0, -1));
 			expect(circleA.vs_point({x: 0, y: -5})).toEqual(getResponse(0, -5, 0, 1));
-
 		});
 
 		it('vs_point() inside the circle should collide', function() {
@@ -159,6 +164,7 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 		});
 
 		it("A should collide with B when B is at the right", function() {
+			circleA = new Collision.Circle({x: 0, y: 0}, 5);
 			circleB = new Collision.Circle({x: 10, y: 0}, 5);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(5, 0, -1, 0));
 		});
@@ -169,6 +175,7 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 		});
 
 		it("A should collide with B when B is above", function() {
+			circleA = new Collision.Circle({x: 0, y: 0}, 5);
 			circleB = new Collision.Circle({x: 0, y: -10}, 5);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(0, -5, 0, 1));
 		});
@@ -177,129 +184,103 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 			circleB = new Collision.Circle({x: 0, y: 10}, 5);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(0, 5, 0, -1));
 		});
-		 
+
 		it("A should collide with B when B is directly on top", function() {
+			circleA = new Collision.Circle({x: 0, y: 0}, 5);
 			circleB = new Collision.Circle({x: 0, y: 0}, 4);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(0, 0, 0, 0));
 		});
+
+		it("A should collide with B when A they overlap", function() {
+			//{ position : { x : 4, y : 0 }, radius : 3 } { position : { x : 6, y : 0 }, radius : 3 }
+			circleA = new Collision.Circle({x: 4, y: 0}, 3);
+			circleB = new Collision.Circle({x: 6, y: 0}, 3);
+			expect(circleA.vs_circle(circleB)).toEqual(getResponse(3, 0, -1, 0));
+		});
 	});
-	
+
 	describe("Collision.Detector", function() {
 
 		describe("test()", function() {
 
 			var detector;
+			var object1;
+			var object2;
+			var object3;
+
 			beforeEach(function() {
-				var object1 = createObject('object1', 4, 0, 4, 0, 3, 3);
-				var object2 = createObject('object2', 6, 0, -4, 0, 3, 3);
-				var object3 = createObject('object3', 20, 20, 0, 0, 3, 3);
+				object1 = createObject('object1', 4, 0, 0, 0, 3, 3, 3);
+				object2 = createObject('object2', 6, 0, 0, 0, 3, 3, 3);
+				object3 = createObject('object3', 20, 20, 0, 0, 3, 3, 3);
 				detector = getCollisionDetector(object1, object2, object3);
 				detector.reset();
 			});
 
-			it('should have found 2 colliding objects', function() {
+			it('should have found 1 collision pair', function() {
 				detector.test();
-				expect(detector.num_collisions()).toEqual(2);
+				expect(detector.num_collisions()).toEqual(1);
 			});
-			
+
+			it('should have no collision after a reset()', function() {
+				detector.test();
+				detector.reset();
+				expect(detector.num_collisions()).toEqual(0);
+			});
+
+			it('should have detected that object1 collided with object2', function() {
+				detector.test();
+				expect(detector.who_collided_with('object1')).toEqual([{with : 'object2', result: getResponse(3,0,-1,0)}]);
+			});
+
+			it('should have no collisions object3', function() {
+				detector.test();
+				expect(detector.who_collided_with('object3')).toEqual({});
+			});
+
+			//it("should handle moving object vs stationary object", function() {
+
+			//});
+
+			//it("should handle moving object vs moving object", function() {
+
+			//});
 		});
 	});
 
-	
-/* 
-	 afterEach(function(){
-	 delete object1;
-	 delete object2;
-	 delete object3;
-	 });
+	describe("resolve()", function() {
 
-	 
+		var detector;
+		var object1;
+		var object2;
+		var object3;
 
-	 it('should have no collision after a reset()', function() {
-	 detector.test();
-	 detector.reset();
-	 expect(detector.num_collisions()).toEqual(0);
-	 });
+		beforeEach(function() {
+			object1 = createObject('moving', 4, 0, 0, 0, 3);
+			object2 = createObject('obstacle', 6, 0, 0, 0, 10);
+			object3 = createObject('object3', 20, 20, 0, 0, 3);
+			detector = getCollisionDetector(object1, object2, object3);
+			detector.test();
+		});
 
-	 it('should have detected that object1 collided with object2', function() {
-	 detector.test();
-	 expect(detector.who_collided_with('object1')).toEqual([{with : 'object2', result: {x: 6, y: 0}}]);
-	 });
+		it('should have moved object1 back', function() {
+			detector.resolve();
+			expect(object1.position).toEqual({x: 11, y: 0});
+		});
 
-	 it('should have detected that object2 collided with object1', function() {
-	 detector.test();
-	 expect(detector.who_collided_with('object2')).toEqual([{with : 'object1', result: {x: 4, y:0}}]);
-	 });
+		it('should have moved object2 back', function() {
+			detector.resolve();
+			expect(object2.position).toEqual({x: 6, y: 0});
+		});
 
-	 it('should have no collisions object3', function() {
-	 detector.test();
-	 expect(detector.who_collided_with('object3')).toEqual({});
-	 });
+		it('shouldn\'t have moved object3', function() {
+			detector.resolve();
+			expect(object3.position).toEqual({x: 20, y: 20});
+		});
 
-	 it("should only have collision for moving with stationary object", function() {
-	 var moving = createObject('moving', 4, 0, 0, 0, 3, 3);
-	 var stationary = createObject('stationary', 8, 0, 8, 0, 3, 3);
-	 var detector = getCollisionDetector(moving, stationary);
-	 detector.test();
-	 expect(detector.get_collisions()).toEqual({
-	 moving : [ { with : 'stationary', result : [ -2, 0 ] } ],
-	 stationary : [ { with : 'moving', result : [ 2, 0 ] } ]
-	 });
-	 });
-	 });
-
-	 describe("resolve()", function() {
-
-	 var detector;
-	 var object1;
-	 var object2;
-	 var object3;
-
-	 beforeEach(function() {
-	 object1 = createObject('object1', 4, 0, 4, 0, 3, 3);
-	 object2 = createObject('object2', 6, 0, -4, 0, 3, 3);
-	 object3 = createObject('object3', 20, 20, 20, 20, 3, 3);
-	 detector = getCollisionDetector(object1, object2, object3);
-	 detector.test();
-	 });
-
-	 it('should have moved object1 back', function() {
-	 detector.resolve();
-	 expect(object1.position).toEqual({x: 2, y: 0});
-	 });
-
-	 it('should have moved object2 back', function() {
-	 detector.resolve();
-	 expect(object2.position).toEqual({x: 8, y: 0});
-	 });
-
-	 it('shouldn\'t have moved object3', function() {
-	 detector.resolve();
-	 expect(object3.position).toEqual({x: 20, y: 20});
-	 });
-
-	 it('should have 2 collision before resolve and 0 after', function() {
-	 expect(detector.num_collisions()).toEqual(2);
-	 detector.resolve();
-	 expect(detector.num_collisions()).toEqual(0);
-	 });
-
-	 it('contact resolution with one stationary', function() {
-	 var object1 = createObject('object1', 4, 0, 4, 0, 3, 3);
-	 var object2 = createObject('object2', 8, 0, 0, 0, 3, 3);
-	 var detector = getCollisionDetector(object1, object2);
-	 detector.test();
-	 expect(detector.get_collisions()).toEqual({
-	 object1 : [ { with : 'object2', result : [ -2, 0 ] } ],
-	 object2 : [ { with : 'object1', result : [ 2, 0 ] } ]
-	 });
-	 detector.resolve();
-	 expect(object1.position).toEqual({x:2,y:0});
-	 expect(object2.position).toEqual({x:8,y:0});
-	 });
-	 });
-	 });
-	*/
-
-
+		it('should have 1 collision pair before resolve and 0 after', function() {
+			expect(detector.num_collisions()).toEqual(1);
+			detector.resolve();
+			expect(detector.num_collisions()).toEqual(0);
+		});
+	});
 });

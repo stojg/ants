@@ -1,3 +1,4 @@
+"use strict";
 require.config({
 	paths: {
 		pulse: 'libs/pulse/bin/pulse',

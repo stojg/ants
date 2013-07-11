@@ -1,3 +1,4 @@
+"use strict";
 define(['class'], function () {
 
 	var Collision = Collision || {};
@@ -9,7 +10,7 @@ define(['class'], function () {
 			this.checked_pairs = [];
 			this.quad = quad;
 			this.collisions = {};
-			for(prop in objects) {
+			for(var prop in objects) {
   				this.objects.push(objects[prop]);
 			}
 		},
@@ -39,7 +40,7 @@ define(['class'], function () {
 					if(objectA.name === objectB.name) {
 						continue;
 					}
-					
+
 					this.hitTest(objectA, objectB);
 				}
 			};
@@ -77,62 +78,13 @@ define(['class'], function () {
 				var resolution = this.collisions[name];
 				for (var i = resolution.length - 1; i >= 0; i--) {
 					var a = this.originals[name];
-					var b = this.originals[resolution[i].with];
-					// remove the other object from the list
-					delete(this.collisions[resolution[i].with]);
-					var change = this.collisions[name][i].result;
-					
-					var aSpeed = Math.sqrt(a.velocity.x*a.velocity.x+a.velocity.y*a.velocity.y);
-					var bSpeed = Math.sqrt(b.velocity.x*b.velocity.x+b.velocity.y*b.velocity.y);
-					var relativeSpeed = aSpeed + bSpeed;
-					
-					if(a.static) {
-						b.position.x -= change[0];
-						b.position.y -= change[1];
-						b.velocity.x = 0;
-						b.velocity.y = 0;
-						continue;
-					}
-
-					if(b.static) {
-						a.position.x += change[0];
-						a.position.y += change[1];
-						a.velocity.x = 0;
-						a.velocity.y = 0;
-						continue;
-					}
-
-					if(relativeSpeed === 0) {
-						a.position.x += change[0]*0.5;
-						a.position.y += change[1]*0.5;
-						b.position.x -= change[0]*0.5;
-						b.position.y -= change[1]*0.5;
-						continue;
-					}
-
-					var aSpeedPercentage = aSpeed/relativeSpeed;
-					var bSpeedPercentage = bSpeed/relativeSpeed;
-					
-					if(a.SpeedX !== 0) {
-						a.position.x += change[0]*aSpeedPercentage;
-					}
-					if(a.SpeedY !== 0) {
-						a.position.y += change[1]*aSpeedPercentage;
-					}
-					if(b.SpeedX !== 0) {
-						b.position.x -= change[0]*(bSpeedPercentage);
-					}
-					if(b.SpeedY !== 0) {
-						
-						b.position.y -= change[1]*(bSpeedPercentage);
-					}
+					var aRadius = a.get_collision().get_radius();
+					var response = this.collisions[name][i].result;
+					a.position.x = response.position.x+response.normal.x*aRadius;
+					a.position.y = response.position.y+response.normal.y*aRadius;
 				};
 				delete(this.collisions[name]);
 			}
-		},
-
-		num_collisions: function() {
-			return Object.keys(this.collisions).length;
 		},
 
 		reset: function() {
@@ -143,23 +95,37 @@ define(['class'], function () {
 		hitTest: function(a, b) {
 			var testA = a.get_collision();
 			var testB = b.get_collision();
+			
+			if(!testA) {
+				console.log('No Collision.Shape on A '+a.type);
+				return false;
+			}
+
+			if(!testB) {
+				console.log('No Collision.Shape on B '+b.type);
+				return false;
+			}
+			
 			var result = false;
 			if(testB instanceof Collision.Circle) {
 				result = testA.vs_circle(testB);
+			} else {
+				throw new Error('Missed to implement a Collision.Shape check.', testB);
 			}
-
-			if(!result) {
-				return;
+			
+			if(typeof result !== 'object') {
+				return false;
 			}
 
 			if(typeof this.collisions[a.name] === 'undefined') {
 				this.collisions[a.name] = [];
 			}
 			if(typeof this.collisions[b.name] === 'undefined') {
-				this.collisions[b.name] = [];	
+				this.collisions[b.name] = [];
 			}
 			this.collisions[a.name].push({'with': b.name, result: result});
-			this.collisions[b.name].push({'with': a.name, result: [-result[0],-result[1]]});
+			// Dont add B back until movement is back
+			//this.collisions[b.name].push({'with': a.name, result: result});
 		},
 
 		who_collided_with: function(name) {
@@ -176,31 +142,48 @@ define(['class'], function () {
 	});
 
 	Collision.Shape = Class.extend({
+
+		_vcheck: function() {
+			for(var i=0;i<arguments.length;i++) {
+				if(isNaN(arguments[i].x)) {
+					throw new Error('Vector is not a proper vector: "'+arguments[i]+'"');
+				}
+				if(isNaN(arguments[i].y)) {
+					throw new Error('Vector is not a proper vector: "'+arguments[i]+'"');
+				}
+			}
+		},
+
 		subtract_vector: function(v1, v2) {
+			this._vcheck(v1,v2);
 			return {
 				x: v1.x - v2.x,
 				y: v1.y - v2.y
 			};
 		},
 		add_vector: function(a, b) {
-				return {
+			this._vcheck(v1,v2);
+			return {
 				x: a.x + b.x,
 				y: b.y + b.y
 			};
 		},
-		multiply_vector: function(vector, scalar) {
+		multiply_vector: function(v1, scalar) {
+			this._vcheck(v1);
 			return {
-				x: vector.x*scalar,
-				y: vector.y*scalar
-			}
+				x: v1.x*scalar,
+				y: v1.y*scalar
+			};
 		},
 		divide_vector: function(vector, scalar) {
+			this._vcheck(vector);
 			return {
 				x: vector.x/scalar,
 				y: vector.y/scalar
-			}
+			};
 		},
 		project_vector: function(project, onto) {
+			this._vcheck(project,onto);
 			var d = this.dot_product(onto, onto);
 			if(0 < d) {
 				var dp = this.dot_product(project, onto);
@@ -208,19 +191,24 @@ define(['class'], function () {
 			}
 			return onto;
 		},
-		dot_product: function(a, b) {
-			return a.x*b.x + a.y*b.y;
+		dot_product: function(v1, v2) {
+			this._vcheck(v1,v2);
+			return v1.x*v2.x + v1.y*v2.y;
 		},
 		vector_length: function(vector) {
+			this._vcheck(vector);
 			return Math.sqrt(this.vector_length_squared(vector));
 		},
 		vector_length_squared: function(vector) {
-			return vector.x*vector.x+vector.y*vector.y;
+			this._vcheck(vector);
+			return this.dot_product(vector, vector);
 		},
 		vector_to_length: function(vector, length) {
+			this._vcheck(vector);
 			return this.multiply_vector(this.normalize_vector(vector), length);
 		},
 		normalize_vector: function(vector) {
+			this._vcheck(vector);
 			var length = this.vector_length(vector);
 			if(0 < length) {
 				return this.divide_vector(vector, length);
@@ -228,6 +216,7 @@ define(['class'], function () {
 			return vector;
 		},
 		negate_vector: function(vector) {
+			this._vcheck(vector);
 			return {
 				x: -vector.x,
 				y: -vector.y
@@ -238,6 +227,9 @@ define(['class'], function () {
 	Collision.Circle = Collision.Shape.extend({
 
 		init: function(position, radius) {
+			if(isNaN(radius)) {
+				throw new Error('Radius has not been set');
+			}
 			this.position = position;
 			this.radius = radius;
 		},
@@ -249,19 +241,31 @@ define(['class'], function () {
 			return this.position;
 		},
 
-		vs_circle: function(other) {
+		update: function(object) {
+			this.position = object.position;
+		},
 
+		vs_circle: function(other) {
 			// Edgecase 1. Circles are on top of each other
-			if(this.vector_length_squared(other.position, this.position) === 0) {
+			var distSqr = this.vector_length_squared(other.position, this.position);
+			
+			if(distSqr === 0) {
 				return {
 					position: this.position,
 					normal: {x:0, y:0}
-				}
+				};
+			}
+			
+			var combinedRadius = this.get_radius() + other.get_radius();
+
+			// Circle center is inside the radius
+			if(combinedRadius*combinedRadius >= distSqr) {
+				
 			}
 
-			var circle = new Collision.Circle(other.get_position(), this.get_radius() + other.get_radius());
+			var circle = new Collision.Circle(other.get_position(), combinedRadius);
+
 			var hit = circle.vs_point(this.get_position());
-			// Circle is right on top
 			if(hit !== false) {
 				var line = new Collision.Segment(other.get_position(), this.get_position());
 				return line.vs_circle(other);
@@ -280,7 +284,7 @@ define(['class'], function () {
 				};
 			}
 			return false;
-		},
+		}
 	});
 
 	Collision.Segment = Collision.Shape.extend({
@@ -299,7 +303,6 @@ define(['class'], function () {
 		},
 
 		vs_circle: function(circle) {
-
 				// The line between start and end
 				var lineDirVec = this.subtract_vector(this.start, this.end);
 				// vector from sphere to start
@@ -317,6 +320,7 @@ define(['class'], function () {
 				
 				// Segment is pointing away from the circle
 				if(discriminant < 0 ) {
+					console.log('Segment pointing away from circle');
 					return false;
 				}
 
@@ -330,6 +334,7 @@ define(['class'], function () {
 				var t2 = (-b + discriminant)/(2*lineSqrDist);
 				
 				var hit = false;
+				var collision = {};
 				
 				// 3x HIT cases:
 				//          -o->             --|-->  |            |  --|->
@@ -338,22 +343,32 @@ define(['class'], function () {
 				// 3x MISS cases:
 				//       ->  o                     o ->              | -> |
 				// FallShort (t1>1,t2>1), Past (t1<0,t2<0), CompletelyInside(t1<0, t2>1)
-
+				
 				// t1 is an intersection, and if it hits, it's closer than t2 would be Impale, Poke
 				if( t1 >= 0 && t1 <= 1 ) {
 					hit = this.multiply_vector(lineDirVec, t1);
-					// here t1 didn't intersect so we are either started inside the sphere or completely past it
+					collision.position = this.subtract_vector(this.start, hit);
+				// here t1 didn't intersect so we are either started inside the sphere or completely past it
 				} else if( t2 >= 0 && t2 <= 1 ) {
 					hit = this.multiply_vector(lineDirVec, t2);
+					collision.position = this.subtract_vector(this.start, hit);
+				// totally inside and smack in the middle
+				} else if(t1<0 && t2 > 0 && t1 === t2) {
+					console.log('smack!');
+					return false;
+				} else if(t1<0 && t2 > 0) {
+					return false;
+					var test = this.multiply_vector({x:1,y:1}, circle.get_radius());
+					hit = this.add_vector(circle.get_position(), test);
+					collision.position = this.subtract_vector(circle.get_position(), {x:circle.get_radius(),y:circle.get_radius()});
 				} else {
+					console.log('wierd case');
 					return false;
 				}
-				var collision = {};
-				collision.position = this.subtract_vector(this.start, hit);
-
+				
 				collision.normal = this.normalize_vector(this.subtract_vector(collision.position, circle.get_position()));
 				return collision;
-		},
+		}
 	});
 
 	return Collision;

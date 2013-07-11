@@ -1,8 +1,7 @@
+"use strict";
 define(['pulse'], function (pulse) {
 
 	var GameObject = pulse.Sprite.extend({
-
-		collision: false,
 
 		init : function(args, collision) {
 			args = args || {};
@@ -15,7 +14,6 @@ define(['pulse'], function (pulse) {
 
 			if(typeof collision !=='undefined') {
 				this.collision = collision;
-				this.collision.set_object(this);
 			}
 			
 			this.rotation = args.rotation || 0;
@@ -32,12 +30,9 @@ define(['pulse'], function (pulse) {
 		},
 
 		update : function(elapsed) {
-			if(this.collision !== false) {
-				this.collision.set_object(this);
-			}
-			
 			if(!this.static) {
 				this.move(elapsed);
+				this.collision.update(this);
 			}
 			this._super(elapsed);
 		},

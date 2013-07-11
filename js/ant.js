@@ -1,3 +1,4 @@
+"use strict";
 define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 
 	var Ant = GameObject.extend({
@@ -20,9 +21,7 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 		update : function(elapsed) {
 			this.delta += elapsed;
 			
-
-			//console.log(this.steering);
-			if(this.delta > 100 ) {
+			if(this.delta > 50) {
 				this.steering = new ai.steering.PrioritySteering();
 				this.steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
 				var ants = this.get_closest('ant');

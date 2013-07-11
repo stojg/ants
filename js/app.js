@@ -1,3 +1,4 @@
+"use strict";
 define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], function(Game, GameObject, Ant, Collision){
 
 	var init = function() {
@@ -34,21 +35,20 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			for (var i = 0; i < 40; i++) {
-				layer.addNode(Ant.create({
-					x: Math.random()*960,
-					y: Math.random()*320
-				}, layer, new Collision.Circle(3)));
+			for (var i = 0; i < 20; i++) {
+				var posX = Math.random()*960;
+				var posY = Math.random()*320;
+				layer.addNode(Ant.create({x: posX,y: posY}, layer, new Collision.Circle({x:posX, y:posY}, 3)));
 			}
 			for (var i = 0; i < 20; i++) {
 				layer.addNode(create_stone([(Math.random()*960), (Math.random()*320)], layer));
 			}
 			layer.addNode(create_stone([300,140], layer));
 			layer.addNode(create_stone([600,110], layer));
-			layer.addNode(create_vertical_wall([1,160], layer));
-			layer.addNode(create_vertical_wall([960,160], layer));
-			layer.addNode(create_horizontal_wall([480,0], layer));
-			layer.addNode(create_horizontal_wall([480,319], layer));
+			//layer.addNode(create_vertical_wall([1,160], layer));
+			//layer.addNode(create_vertical_wall([960,160], layer));
+			//layer.addNode(create_horizontal_wall([480,0], layer));
+			//layer.addNode(create_horizontal_wall([480,319], layer));
 
 			// Create a scene.
 			var scene = new pulse.Scene();
@@ -61,7 +61,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			window.engine.scenes.activateScene(scene);
 
 			layer.on('mouseup', function(args) {
-				layer.addNode(Ant.create(args.position, layer, new Collision.Circle(3)));
+				layer.addNode(Ant.create(args.position, layer, new Collision.Circle(args.position, 3)));
 			});
 
 			var bounds = {x:0,y:0,width:Game.world.width,height:Game.world.height}
@@ -87,7 +87,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			anchor: {x: 0.5, y: 0.5},
 			static: true,
 			type: 'obstacle'
-		}, new Collision.Circle(10));
+		}, new Collision.Circle({x:position[0], y:position[1]}, 10));
 	};
 
 	var create_horizontal_wall = function(position, layer) {
@@ -98,7 +98,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			size: {x: 960, y: 1},
 			static: true,
 			type: 'wall'
-		});
+		}, new Collision.Circle({x:position[0], y:position[1]}, 1));
 	};
 
 	var create_vertical_wall = function(position, layer) {
@@ -109,7 +109,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			size: {x: 1, y: 360},
 			static: true,
 			type: 'wall'
-		});
+		}, new Collision.Circle({x:position[0], y:position[1]}, 1));
 	};
 
 	var create_home = function(position, layer) {
@@ -121,7 +121,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			static: true,
 			collidable: false,
 			type: 'home'
-		});
+		}, new Collision.Circle({x:position[0], y:position[1]}, 1));
 	};
 
 	var create_food = function(position, layer) {
@@ -133,7 +133,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			static: true,
 			collidable: false,
 			type: 'food'
-		});
+		}, new Collision.Circle({x:position[0], y:position[1]}, 1));
 	};
 	
 	var distance = function(a, b){
