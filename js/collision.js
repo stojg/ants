@@ -3,6 +3,29 @@ define(['class'], function () {
 
 	var Collision = Collision || {};
 
+	Collision.List = Class.extend({
+
+		init: function() {
+			this.list = [];
+		},
+
+		get_all: function() {
+			return this.list;
+		},
+
+		length: function() {
+			return this.list.length;
+		},
+
+		pop: function() {
+			return this.list.pop();
+		},
+
+		insert: function(a,b,result) {
+			this.list.push({first:a,second:b,result:result});
+		}
+	});
+
 	Collision.Detector = Class.extend({
 		init: function(objects, quad) {
 		 	this.objects = [];
@@ -10,40 +33,74 @@ define(['class'], function () {
 			this.checked_pairs = [];
 			this.quad = quad;
 			this.collisions = {};
+			this.collisionList;
 			for(var prop in objects) {
   				this.objects.push(objects[prop]);
 			}
 		},
 		
 		test: function() {
+			this.collisionList = new Collision.List();
 			for (var i = 0; i < this.objects.length; i++) {
 				var objectA = this.objects[i];
-
-				if(objectA.static) {
-					continue;
-				}
-
 				var neighbours = this.quad.retrieve({
 					x: objectA.position.x,
 					y: objectA.position.y,
-					height: objectA.size.x*2,
-					width: objectA.size.y*2
+					height: objectA.size.x,
+					width: objectA.size.y
 				});
-
 				for (var j = 0; j < neighbours.length ; j++) {
+
 					var objectB = neighbours[j].node;
+					if(objectA.name === objectB.name) {
+						continue;
+					}
+					if(objectA.static) {
+						continue;
+					}
 					if(this.has_been_checked(objectA, objectB)) {
 						continue;
 					}
 					this.add_to_checked(objectA, objectB);
-
-					if(objectA.name === objectB.name) {
-						continue;
+					var result = this.hitTest(objectA, objectB);
+					if(result) {
+						this.collisionList.insert(objectA, objectB, result);
 					}
-
-					this.hitTest(objectA, objectB);
 				}
 			};
+			return this.collisionList;
+		},
+
+		hitTest: function(a, b) {
+			var testA = a.get_collision();
+			var testB = b.get_collision();
+
+			if(!testA) {
+				console.log('No Collision.Shape on A '+a.type);
+				return false;
+			}
+
+			if(!testB) {
+				console.log('No Collision.Shape on B '+b.type);
+				return false;
+			}
+
+			if(testB instanceof Collision.Circle) {
+				return testA.vs_circle(testB);
+			} else {
+				throw new Error('Missed to implement a Collision.Shape check.', testB);
+			}
+		},
+
+		resolve: function() {
+			var collision;
+			while(collision = this.collisionList.pop()) {
+				var a = this.originals[collision.first.name];
+				var aRadius = a.get_collision().get_radius();
+				var response = collision.result;
+				a.position.x = response.position.x+response.normal.x*aRadius;
+				a.position.y = response.position.y+response.normal.y*aRadius;
+			}
 		},
 
 		add_to_checked: function(a, b) {
@@ -62,70 +119,18 @@ define(['class'], function () {
 		},
 
 		has_been_checked: function(a, b) {
-			if(typeof this.checked_pairs[a.name] === 'undefined') {
-				return false;
+			if(this.checked_pairs[a.name] && this.checked_pairs[a.name][b.name]){
+				return true;
 			}
-
-			if(typeof this.checked_pairs[b.name] === 'undefined') {
-				return false;
+			if(this.checked_pairs[b.name] && this.checked_pairs[b.name][a.name]){
+				return true;
 			}
-
-			return this.checked_pairs[b.name];
-		},
-
-		resolve: function() {
-			for(name in this.collisions) {
-				var resolution = this.collisions[name];
-				for (var i = resolution.length - 1; i >= 0; i--) {
-					var a = this.originals[name];
-					var aRadius = a.get_collision().get_radius();
-					var response = this.collisions[name][i].result;
-					a.position.x = response.position.x+response.normal.x*aRadius;
-					a.position.y = response.position.y+response.normal.y*aRadius;
-				};
-				delete(this.collisions[name]);
-			}
+			return false;
 		},
 
 		reset: function() {
 			this.collisions = {};
 			this.checked_pairs = [];
-		},
-
-		hitTest: function(a, b) {
-			var testA = a.get_collision();
-			var testB = b.get_collision();
-			
-			if(!testA) {
-				console.log('No Collision.Shape on A '+a.type);
-				return false;
-			}
-
-			if(!testB) {
-				console.log('No Collision.Shape on B '+b.type);
-				return false;
-			}
-			
-			var result = false;
-			if(testB instanceof Collision.Circle) {
-				result = testA.vs_circle(testB);
-			} else {
-				throw new Error('Missed to implement a Collision.Shape check.', testB);
-			}
-			
-			if(typeof result !== 'object') {
-				return false;
-			}
-
-			if(typeof this.collisions[a.name] === 'undefined') {
-				this.collisions[a.name] = [];
-			}
-			if(typeof this.collisions[b.name] === 'undefined') {
-				this.collisions[b.name] = [];
-			}
-			this.collisions[a.name].push({'with': b.name, result: result});
-			// Dont add B back until movement is back
-			//this.collisions[b.name].push({'with': a.name, result: result});
 		},
 
 		who_collided_with: function(name) {
