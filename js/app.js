@@ -35,7 +35,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			for (var i = 0; i < 20; i++) {
+			for (var i = 0; i < 2; i++) {
 				var posX = Math.random()*960;
 				var posY = Math.random()*320;
 				layer.addNode(Ant.create({x: posX,y: posY}, layer, new Collision.Circle({x:posX, y:posY}, 3)));
@@ -45,10 +45,6 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			}
 			layer.addNode(create_stone([300,140], layer));
 			layer.addNode(create_stone([600,110], layer));
-			//layer.addNode(create_vertical_wall([1,160], layer));
-			//layer.addNode(create_vertical_wall([960,160], layer));
-			//layer.addNode(create_horizontal_wall([480,0], layer));
-			//layer.addNode(create_horizontal_wall([480,319], layer));
 
 			// Create a scene.
 			var scene = new pulse.Scene();
@@ -65,7 +61,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			});
 
 			var bounds = {x:0,y:0,width:Game.world.width,height:Game.world.height}
-			window.quad = new QuadTree(bounds, true, 10);
+			window.quad = new QuadTree(bounds);
 			window.engine.go(30, update);
 		});
 	};

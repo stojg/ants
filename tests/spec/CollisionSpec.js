@@ -23,7 +23,7 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 	};
 
 	var getCollisionDetector = function() {
-		var quad = new QuadTree({x: 0, y: 0, width: 50, height: 50}, true, 10);
+		var quad = new QuadTree({x: -50, y: -50, width: 50, height: 50});
 		var allObjects = {};
 		for (var key in arguments) {
 			quad.insert({
@@ -181,44 +181,69 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 			expect(circleA.vs_point({x: 0, y: 0})).toEqual(getResponse(0, 0, 0, 0));
 		});
 
-		it("A should not collide with B", function() {
+		it("vs_circle() A should not collide with B", function() {
 			circleB = new Collision.Circle({x: 10, y: 0}, 4);
 			expect(circleA.vs_circle(circleB)).toEqual(false);
 		});
 
-		it("A should collide with B when B is at the right", function() {
+		it("vs_circle() A should collide with B when B is at the right", function() {
 			circleA = new Collision.Circle({x: 0, y: 0}, 5);
 			circleB = new Collision.Circle({x: 10, y: 0}, 5);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(5, 0, -1, 0));
 		});
 
-		it("A should collide with B when B is at the left", function() {
+		it("vs_circle() A should collide with B when B is at the left", function() {
 			circleB = new Collision.Circle({x: -10, y: 0}, 5);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(-5, 0, 1, 0));
 		});
 
-		it("A should collide with B when B is above", function() {
+		it("vs_circle() A should collide with B when B is above", function() {
 			circleA = new Collision.Circle({x: 0, y: 0}, 5);
 			circleB = new Collision.Circle({x: 0, y: -10}, 5);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(0, -5, 0, 1));
 		});
 
-		it("A should collide with B when B is below", function() {
+		it("vs_circle() A should collide with B when B is below", function() {
 			circleB = new Collision.Circle({x: 0, y: 10}, 5);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(0, 5, 0, -1));
 		});
 
-		it("A should collide with B when B is directly on top", function() {
+		it("vs_circle() A should collide with B when B is directly on top", function() {
 			circleA = new Collision.Circle({x: 0, y: 0}, 5);
 			circleB = new Collision.Circle({x: 0, y: 0}, 4);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(0, 0, 0, 0));
 		});
 
-		it("A should collide with B when A they overlap", function() {
-			//{ position : { x : 4, y : 0 }, radius : 3 } { position : { x : 6, y : 0 }, radius : 3 }
-			circleA = new Collision.Circle({x: 4, y: 0}, 3);
+		it("vs_circle() A should collide with B when A they overlap ->", function() {
 			circleB = new Collision.Circle({x: 6, y: 0}, 3);
+			circleA = new Collision.Circle({x: 4, y: 0}, 3);
 			expect(circleA.vs_circle(circleB)).toEqual(getResponse(3, 0, -1, 0));
+		});
+
+		it("vs_circle() A should collide with B when A they overlap <-", function() {
+			circleB = new Collision.Circle({x: 4, y: 0}, 3);
+			circleA = new Collision.Circle({x: 6, y: 0}, 3);
+			expect(circleA.vs_circle(circleB)).toEqual(getResponse(7, 0, 1, 0));
+		});
+
+		it("vs_circle() A should collide with B when A they overlap ^", function() {
+			circleB = new Collision.Circle({x: 0, y: 4}, 3);
+			circleA = new Collision.Circle({x: 0, y: 6}, 3);
+			expect(circleA.vs_circle(circleB)).toEqual(getResponse(0, 7, 0, 1));
+		});
+
+		it("vs_circle() A should collide with B when A they overlap down", function() {
+			circleB = new Collision.Circle({x: 0, y: 6}, 3);
+			circleA = new Collision.Circle({x: 0, y: 4}, 3);
+			expect(circleA.vs_circle(circleB)).toEqual(getResponse(0, 3, 0, -1));
+		});
+
+		it("vs_circle() A AND C should collide with B when A they overlap", function() {
+			circleB = new Collision.Circle({x: 0, y: 6}, 3);
+			circleA = new Collision.Circle({x: 0, y: 4}, 3);
+			var circleC = new Collision.Circle({x: 0, y: 7}, 3);
+			expect(circleA.vs_circle(circleB)).toEqual(getResponse(0, 3, 0, -1));
+			expect(circleC.vs_circle(circleB)).toEqual(getResponse(0, 9, 0, 1));
 		});
 	});
 
@@ -261,6 +286,32 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 					{first: object1,second:object2,result:{position:{x:3,y:0},normal:{x:-1,y:0}}},
 					{first: object3,second:object4,result:{position:{x:20,y:17},normal:{x:0,y:-1}}}
 				]);
+			});
+
+			it('should have detected 4 collisions', function() {
+				var top = createObject('top', 0, 0, 0, 0, 3, 3, 3);
+				var center = createObject('center', 6, 0, 0, 0, 3, 3, 3);
+				var right = createObject('right', 6, 6, 0, 0, 3, 3, 3);
+				var below = createObject('below', 12, 0, 0, 0, 3, 3, 3);
+				var bottom = createObject('bottom', 15, 0, 0, 0, 3, 3, 3);
+				detector = getCollisionDetector(top, center, below, right, bottom);
+				detector.reset();
+				var list = detector.test();
+				expect(list.length()).toEqual(4);
+				var pair = list.pop();
+				expect(pair.first.name).toEqual('below');
+				expect(pair.second.name).toEqual('bottom');
+				pair = list.pop();
+				expect(pair.first.name).toEqual('center');
+				expect(pair.second.name).toEqual('right');
+				pair = list.pop();
+				expect(pair.first.name).toEqual('center');
+				expect(pair.second.name).toEqual('below');
+				pair = list.pop();
+				expect(pair.first.name).toEqual('top');
+				expect(pair.second.name).toEqual('center');
+				
+				
 			});
 		});
 	});

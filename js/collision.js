@@ -265,7 +265,7 @@ define(['class'], function () {
 			
 			// Circle center is inside the other cirlce
 			if(other.get_radius()*other.get_radius() > distSqr) {
-				var norm = this.normalize_vector(direction)
+				var norm = this.normalize_vector(direction);
 				var normDirection = this.multiply_vector(norm, other.get_radius());
 				var goTo = this.add_vector(other.get_position(),normDirection);
 				return {
