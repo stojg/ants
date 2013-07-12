@@ -35,12 +35,12 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			for (var i = 0; i < 2; i++) {
+			for (var i = 0; i < 40; i++) {
 				var posX = Math.random()*960;
 				var posY = Math.random()*320;
 				layer.addNode(Ant.create({x: posX,y: posY}, layer, new Collision.Circle({x:posX, y:posY}, 3)));
 			}
-			for (var i = 0; i < 20; i++) {
+			for (var i = 0; i < 40; i++) {
 				layer.addNode(create_stone([(Math.random()*960), (Math.random()*320)], layer));
 			}
 			layer.addNode(create_stone([300,140], layer));
@@ -61,7 +61,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			});
 
 			var bounds = {x:0,y:0,width:Game.world.width,height:Game.world.height}
-			window.quad = new QuadTree(bounds);
+			window.quad = new QuadTree(bounds,false,8,8);
 			window.engine.go(30, update);
 		});
 	};
