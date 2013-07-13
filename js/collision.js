@@ -87,8 +87,10 @@ define(['class'], function () {
 
 			if(testB instanceof Collision.Circle) {
 				return testA.vs_circle(testB);
+			} else if(testB instanceof Collision.MovingCircle) {
+				return testA.vs_moving_circle(testB);
 			} else {
-				throw new Error('Missed to implement a Collision.Shape check.', testB);
+				throw new Error('Missed to implement a Collision.Shape check');
 			}
 		},
 
@@ -148,6 +150,8 @@ define(['class'], function () {
 	});
 
 	Collision.Shape = Class.extend({
+
+		epsilon: 0.000001,
 
 		_vcheck: function() {
 			for(var i=0;i<arguments.length;i++) {
@@ -288,7 +292,8 @@ define(['class'], function () {
 		vs_point: function(point) {
 			var direction = this.subtract_vector(point, this.get_position());
 			var distance = this.vector_length(direction);
-			if(distance <= this.get_radius()) {
+
+			if(distance-this.epsilon <= this.get_radius()+this.epsilon) {
 				var normal = this.normalize_vector(this.negate_vector(point));
 				return {
 					position: { x: point.x, y: point.y },
@@ -297,6 +302,72 @@ define(['class'], function () {
 			}
 			return false;
 		}
+	});
+
+	Collision.MovingCircle = Collision.Shape.extend({
+
+		init: function(position, radius, velocity) {
+			if(isNaN(radius)) {
+				throw new Error('Radius has not been set');
+			}
+			this.position = position;
+			this.radius = radius;
+			this.velocity = velocity || {x:0,y:0};
+		},
+		get_radius: function() {
+			return this.radius;
+		},
+
+		get_position: function() {
+			return this.position;
+		},
+
+		get_velocity: function() {
+			return this.velocity;
+		},
+
+		update: function(object) {
+			this.position = object.position;
+			this.velocity = object.velocity;
+		},
+
+		vs_point: function(point) {
+			if(this.get_velocity().x === 0 && this.get_velocity().y === 0) {
+				var CollisionCircle = new Collision.Circle(this.get_position(), this.get_radius());
+				return CollisionCircle.vs_point(point);
+			}
+			var prevPosition = this.add_vector(point, this.get_velocity());
+			var line = new Collision.Segment(prevPosition, point);
+			return line.vs_circle(this);
+		},
+
+		vs_circle: function(other) {
+			if(this.get_velocity().x === 0 && this.get_velocity().y === 0) {
+				var CollisionCircle = new Collision.Circle(this.get_position(), this.get_radius());
+				return CollisionCircle.vs_circle(other);
+			}
+
+			var combinedRadius = this.get_radius() + other.get_radius();
+			var circle = new Collision.Circle(other.get_position(), combinedRadius);
+			var lineStart = this.subtract_vector(this.get_position(), this.get_velocity());
+			var line = new Collision.Segment(lineStart, this.get_position());
+			
+			var hit = line.vs_circle(circle);
+			if(!hit) {
+				return false;
+			}
+
+			var CollisionCircle = new Collision.Circle(hit.position, this.get_radius());
+			var t = CollisionCircle.vs_circle(other);
+			return t;
+		},
+
+		vs_moving_circle: function(other) {
+			var relativeSpeed = this.subtract_vector(this.get_velocity(), other.get_velocity());
+			var otherCircle = new Collision.Circle(other.get_position(), other.get_radius());
+			var selfCircle = new Collision.MovingCircle(this.get_position(), this.get_radius(), relativeSpeed);
+			return selfCircle.vs_circle(otherCircle);
+		},
 	});
 
 	Collision.Segment = Collision.Shape.extend({
@@ -318,27 +389,28 @@ define(['class'], function () {
 				// The line between start and end
 				var lineDirVec = this.subtract_vector(this.start, this.end);
 				// vector from sphere to start
-				var startToCenterVec = this.subtract_vector(circle.get_position(), this.start);
-
+				var lineCenterVec = this.subtract_vector(circle.get_position(), this.start);
+				
 				var lineSqrDist = this.dot_product(lineDirVec, lineDirVec);
+				var b = 2*this.dot_product(lineCenterVec, lineDirVec);
 
-				var b = 2*this.dot_product(startToCenterVec, lineDirVec);
+				var b = 2*this.dot_product(lineCenterVec, lineDirVec);
 
 				var radiusSqr = circle.get_radius()*circle.get_radius();
 
-				var startCenterDist = this.dot_product(startToCenterVec,startToCenterVec) - radiusSqr;
-
-				var discriminant = b*b-4*lineSqrDist*startCenterDist;
+				var lineCenterDist = this.dot_product(lineCenterVec,lineCenterVec) - radiusSqr;
 				
-				// Segment is pointing away from the circle
+				var discriminant = (b*b)-4*lineSqrDist*lineCenterDist;
+				
+				// There are no roots, no solution, no touch
 				if(discriminant < 0 ) {
-					console.log('Segment pointing away from circle');
+					//console.log('Segment pointing away from circle');
 					return false;
 				}
 
 				// ray didn't totally miss sphere, so there is a solution to the equation.
 				discriminant = Math.sqrt(discriminant);
-				
+
 				// either solution may be on or off the ray so need to test both
 				// t1 is always the smaller value, because BOTH discriminant and
 				// a are nonnegative.
@@ -347,7 +419,7 @@ define(['class'], function () {
 				
 				var hit = false;
 				var collision = {};
-				
+
 				// 3x HIT cases:
 				//          -o->             --|-->  |            |  --|->
 				// Impale(t1 hit,t2 hit), Poke(t1 hit,t2>1), ExitWound(t1<0, t2 hit),
@@ -355,7 +427,7 @@ define(['class'], function () {
 				// 3x MISS cases:
 				//       ->  o                     o ->              | -> |
 				// FallShort (t1>1,t2>1), Past (t1<0,t2<0), CompletelyInside(t1<0, t2>1)
-				
+
 				// t1 is an intersection, and if it hits, it's closer than t2 would be Impale, Poke
 				if( t1 >= 0 && t1 <= 1 ) {
 					hit = this.multiply_vector(lineDirVec, t1);

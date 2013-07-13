@@ -134,6 +134,18 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 			var segment = new Collision.Segment({x: 10, y: 10}, {x: 11, y: 10});
 			expect(segment.vs_circle(circle)).toEqual(false);
 		});
+
+		it("14. vs_circle() segment is has a non integer position", function() {
+			var circle = new Collision.Circle({x: 0, y: 0}, 10);
+			var segment = new Collision.Segment({ x : -20.2, y : 0 }, { x : 20.2, y : 0 });
+			expect(segment.vs_circle(circle)).toEqual(getResponse(-10, 0, -1, 0));
+		});
+
+		it("15. vs_circle() segment is has a non integer position and circle off center", function() {
+			var circle = new Collision.Circle({x: 10, y: 0}, 10);
+			var segment = new Collision.Segment({ x : -39.8, y : 0 }, { x : 20.2, y : 0 });
+			expect(segment.vs_circle(circle)).toEqual(getResponse(-0.00000000000002842170943040401, 0, -1, 0));
+		});
 	});
 
 	describe("Collision.Circle", function() {
@@ -247,6 +259,91 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 		});
 	});
 
+	describe("Collision.MovingCircle", function() {
+		var right;
+		var left;
+		var obstacle;
+
+		var diag = 0.7071067811865476;
+
+		beforeEach(function() {
+			
+		});
+
+		it("get_radius() should return correct value", function() {
+			right = new Collision.MovingCircle({x: 0, y: 0}, 3, {x:2,y:0});
+			expect(right.get_radius()).toEqual(3);
+		});
+
+		it("get_position() should return correct value", function() {
+			right = new Collision.MovingCircle({x: 0, y: 0}, 3, {x:2,y:0});
+			expect(right.get_position()).toEqual({x: 0, y: 0});
+		});
+
+		it("get_velocity() should return correct value", function() {
+			right = new Collision.MovingCircle({x: 0, y: 0}, 3, {x:2,y:0});
+			expect(right.get_velocity()).toEqual({x: 2, y: 0});
+		});
+
+		it('vs_point() outside circle and no velocity  should not collide', function() {
+			right = new Collision.MovingCircle({x: 0, y: 0}, 3, {x:0,y:0});
+			expect(right.vs_point({x: 4, y: 0})).toEqual(false);
+		});
+
+		it('vs_point() inside circle and no velocity should collide', function() {
+			right = new Collision.MovingCircle({x: 0, y: 0}, 3, {x:0,y:0});
+			expect(right.vs_point({x: 3, y: 0})).toEqual(getResponse(3,0,-1,0));
+		});
+
+		it('vs_point() with velocity should collide', function() {
+			right = new Collision.MovingCircle({x: 3, y: 0}, 3, {x:3,y:0});
+			expect(right.vs_point({x: -2, y: 0})).toEqual(getResponse(0,0,-1,0));
+		});
+
+		it("vs_circle() left should not collide with right when right is at the right", function() {
+			left = new Collision.MovingCircle({x: 0, y: 0}, 5, {x:0,y:0});
+			right = new Collision.Circle({x: 11, y: 0}, 5);
+			expect(left.vs_circle(right)).toEqual(false);
+		});
+
+		it("vs_circle() left should collide with right when right is at the right", function() {
+			left = new Collision.MovingCircle({x: 0, y: 0}, 5, {x:0,y:0});
+			right = new Collision.Circle({x: 10, y: 0}, 5);
+			expect(left.vs_circle(right)).toEqual(getResponse(5, 0, -1, 0));
+		});
+
+		it("vs_circle() left should collide with right when moving to the left", function() {
+			left = new Collision.MovingCircle({x: -1, y: 0}, 5, {x:-1,y:0});
+			right = new Collision.Circle({x: 10, y: 0}, 5);
+			expect(left.vs_circle(right)).toEqual(getResponse(5, 0, -1, 0));
+		});
+
+		it("vs_circle() left should not collide with right when moving to the right", function() {
+			left = new Collision.MovingCircle({x: -1, y: 0}, 5, {x:1,y:0});
+			right = new Collision.Circle({x: 10, y: 0}, 5);
+			expect(left.vs_circle(right)).toEqual(false);
+		});
+
+		it("vs_circle() left should not tunnel through right", function() {
+			left = new Collision.MovingCircle({x: 20, y: 0}, 5, {x:20,y:0});
+			right = new Collision.Circle({x: 10, y: 0}, 5);
+			expect(left.vs_circle(right)).toEqual(getResponse(5, 0, -1, 0));
+		});
+
+		it("vs_circle() left should not tunnel through right", function() {
+			left = new Collision.MovingCircle({x: 10, y: 0}, 5, {x:20,y:0});
+			right = new Collision.Circle({x: 10, y: 0}, 10);
+			expect(left.vs_circle(right)).toEqual(getResponse(0, 0, -1, 0));
+		});
+
+		it("vs_circle() left should not tunnel through up", function() {
+			left = new Collision.MovingCircle({x: 0, y: 10}, 5, {x:0,y:40});
+			right = new Collision.Circle({x: 0, y: 10}, 10);
+			expect(left.vs_circle(right)).toEqual(getResponse(0, 0, 0, -1));
+		});
+
+	});
+
 	describe("Collision.Detector", function() {
 
 		describe("test()", function() {
@@ -322,6 +419,7 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 		var object1;
 		var object2;
 		var object3;
+		var moving;
 
 		beforeEach(function() {
 			object1 = createObject('object1', 4, 0, 0, 0, 3, 3, 3);
@@ -346,5 +444,42 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 			expect(object3.position).toEqual({x: 20, y: 20});
 		});
 
+		it('should move moving circle back', function() {
+			object1 = createObject('object1', 10, 0, 0, 0, 2, 2, 5,true);
+			moving = {
+				position: {x: 5, y: 0},
+				velocity: {x: 20, y: 0},
+				size: {x: 1, y: 1},
+				name: "moving",
+				radius: 5,
+				get_collision: function() {
+					return new Collision.MovingCircle(this.position, this.radius, this.velocity);
+				}
+			};
+			detector = getCollisionDetector(moving, object1);
+			var list = detector.test();
+			expect(list.length()).toEqual(1);
+			detector.resolve();
+			expect(moving.position).toEqual({x: 0, y: 0});
+		});
+
+		it('should move moving circle back x', function() {
+			object1 = createObject('object1', 10, 0, 0, 0, 2, 2, 5,true);
+			moving = {
+				position: {x: 20.2, y: 0},
+				velocity: {x: 60, y: 0},
+				size: {x: 2, y: 2},
+				name: "moving",
+				radius: 5,
+				get_collision: function() {
+					return new Collision.MovingCircle(this.position, this.radius, this.velocity);
+				}
+			};
+			detector = getCollisionDetector(moving, object1);
+			var list = detector.test();
+			expect(list.length()).toEqual(1);
+			detector.resolve();
+			expect(moving.position).toEqual({x: 0, y: 0});
+		});
 	});
 });
