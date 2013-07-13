@@ -58,10 +58,10 @@ define(['class'], function () {
 					if(objectA.static) {
 						continue;
 					}
-					if(this.has_been_checked(objectA, objectB)) {
+					if(!this.should_check(objectA, objectB)) {
 						continue;
 					}
-					this.add_to_checked(objectA, objectB);
+					
 					var result = this.hitTest(objectA, objectB);
 					if(result) {
 						this.collisionList.insert(objectA, objectB, result);
@@ -103,29 +103,30 @@ define(['class'], function () {
 			}
 		},
 
-		add_to_checked: function(a, b) {
-			if(typeof this.checked_pairs[a.name] === 'undefined') {
-				this.checked_pairs[a.name] = [];
+		should_check: function(a, b) {
+			if(a.name in this.checked_pairs && b.name in this.checked_pairs[a.name]){
+				return false;
 			}
-			if(typeof this.checked_pairs[a.name][b.name] === 'undefined') {
+			if(b.name in this.checked_pairs&& a.name in this.checked_pairs[b.name]){
+				return false;
+			}
+			if(!(a.name in this.checked_pairs)) {
+				this.checked_pairs[a.name] = [];
+				this.checked_pairs[a.name][b.name] = true;
+				return true;
+			}
+			if(!(b.name in this.checked_pairs[a.name])) {
 				this.checked_pairs[a.name][b.name] = true;
 			}
-			if(typeof this.checked_pairs[b.name] === 'undefined') {
+			if(!(b.name in this.checked_pairs)) {
 				this.checked_pairs[b.name] = [];
-			}
-			if(typeof this.checked_pairs[a.name][a.name] === 'undefined') {
-				this.checked_pairs[b.name][a.name] = true;
-			}
-		},
-
-		has_been_checked: function(a, b) {
-			if(this.checked_pairs[a.name] && this.checked_pairs[a.name][b.name]){
+				this.checked_pairs[b.name][b.name] = true;
 				return true;
 			}
-			if(this.checked_pairs[b.name] && this.checked_pairs[b.name][a.name]){
-				return true;
+			if(!(a.name in this.checked_pairs[b.name])) {
+				this.checked_pairs[b.name][b.name] = true;
 			}
-			return false;
+			return true;
 		},
 
 		reset: function() {
