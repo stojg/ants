@@ -35,7 +35,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			for (var i = 0; i < 10; i++) {
+			for (var i = 0; i < 20; i++) {
 				var posX = Math.random()*960;
 				var posY = Math.random()*320;
 				layer.addNode(Ant.create({x: posX,y: posY}, layer));

@@ -422,7 +422,7 @@ define(['class', 'vec', 'vector'], function(Class, sVec) {
 
 	ai.steering.ObstacleAvoidance = ai.steering.Seek.extend({
 		init: function(character, type) {
-			this.avoidDistance = 5;
+			this.avoidDistance = 6;
 			this.lookahead = 50;
 			this.type = type;
 			this._super(character, new ai.steering.Kinematics());
@@ -458,6 +458,7 @@ define(['class', 'vec', 'vector'], function(Class, sVec) {
 			if (!closestResult) {
 				return steering;
 			}
+			
 			var b = sVec.multiply(closestResult.normal, this.character.radius);
 			var brupp = sVec.add(closestResult.position, b);
 			this.target.position = vec([brupp.x, brupp.y]);
