@@ -32,7 +32,7 @@ define(['pulse'], function (pulse) {
 		update : function(elapsed) {
 			if(!this.static) {
 				this.move(elapsed);
-				this.collision.update(this);
+				this.collision.update(this, elapsed);
 			}
 			this._super(elapsed);
 		},
@@ -40,6 +40,15 @@ define(['pulse'], function (pulse) {
 		move : function(elapsed) {
 			this.position.x += this.velocity.x*(elapsed/1000);
 			this.position.y += this.velocity.y*(elapsed/1000);
+		},
+
+		actuate : function(output, elapsed) {
+			var new_velocity = this.get_actuated_velocity(output, elapsed);
+			this.velocity = {
+				x : new_velocity.e(1),
+				y : new_velocity.e(2)
+			};
+			this.rotation = this.get_actuated_rotation(output, elapsed)
 		},
 
 		get_collision: function() {

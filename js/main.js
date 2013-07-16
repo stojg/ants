@@ -3,20 +3,24 @@ require.config({
 	paths: {
 		pulse: 'libs/pulse/bin/pulse',
 		vector: 'libs/sylvester.src',
-		kdTree: 'libs/kd-tree/kdTree'
+		kdTree: 'libs/kd-tree/kdTree',
+		vec: 'vector'
 	},
 	shim: {
-		'pulse': {
+		pulse: {
 			exports: 'pulse'
 		},
-		'vector': {
+		vector: {
 			exports: 'vector'
 		},
-		'kdTree': {
+		kdTree: {
 			exports: 'kdTree'
+		},
+		vec: {
+			exports: 'vec'
 		}
 	},
-	urlArgs: "version=0.4.0"
+	urlArgs: "version=0.4.1"
 });
 
 require(['app'], function(App) {

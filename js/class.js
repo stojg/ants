@@ -61,7 +61,9 @@ define(function () {
     Class.extend = arguments.callee;
    
     return Class;
-  };
+	};
+
+	return this.Class;
 
 
 });

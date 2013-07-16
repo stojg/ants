@@ -1,5 +1,5 @@
 "use strict";
-define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
+define(['gameobject', 'state', 'ai/steering', 'collision'], function (GameObject, State, Steering, Collision) {
 
 	var Ant = GameObject.extend({
 		inventory: false,
@@ -16,20 +16,13 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 			return this.inventory;
 		},
 		
-		delta: 0,
-
 		update : function(elapsed) {
-			this.delta += elapsed;
-			
-			if(this.delta > 50) {
-				this.steering = new ai.steering.PrioritySteering();
-				this.steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
-				var ants = this.get_closest('ant');
-				this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
-				this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
-				this.delta = 0;
-				this.update_state();
-			}
+			this.steering = new ai.steering.PrioritySteering();
+			this.steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), this.get_closest('obstacle')));
+			var ants = this.get_closest('ant');
+			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
+			this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
+			this.update_state();
 			if(typeof this.steering !== 'undefined') {
 				this.actuate(this.steering.get(), elapsed);	
 			}
@@ -52,15 +45,6 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 			if(actions.indexOf('seek_home_action') >= 0) {
 				this.steering.push(new ai.steering.Arrive(this.kinematics(), this.get_closest('home')[0]));
 			}
-		},
-
-		actuate : function(output, elapsed) {
-			var new_velocity = this.get_actuated_velocity(output, elapsed);
-			this.velocity = {
-				x : new_velocity.e(1),
-				y : new_velocity.e(2)
-			};
-			this.rotation = this.get_actuated_rotation(output, elapsed)
 		},
 
 		get_actuated_velocity: function(output, elapsed) {
@@ -172,8 +156,8 @@ define(['gameobject', 'state', 'ai/steering'], function (GameObject, State) {
 	});
 
 	// Factory method
-	Ant.create = function(position, layer, collision) {
-
+	Ant.create = function(position, layer) {
+		var collision = new Collision.MovingCircle(position, 3);
 		return new Ant({
 			size : { width: 7, height: 5 },
 			collision : { width: 5, height: 3 },
