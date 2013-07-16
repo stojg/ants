@@ -59,6 +59,38 @@ define(function() {
 		};
 	};
 
+	Vector.divide = function(vector, divisor) {
+		this._vcheck(vector);
+		return {
+			x: vector.x / divisor,
+			y: vector.y / divisor
+		};
+	};
+
+	Vector.project = function(project, onto) {
+		this._vcheck(project, onto);
+		var size = Vec.dot(onto, onto);
+		if (0 < size) {
+			var dp = this.dot_product(project, onto);
+			return vec.multiply(onto, dp / size);
+		}
+		return onto;
+	};
+
+	Vector.length_squared = function(vector) {
+		this._vcheck(vector);
+		return Vector.dot(vector, vector);
+	};
+
+	Vector.normalize = function(vector) {
+		this._vcheck(vector);
+		var size = Vector.length(vector);
+		if (0 < size) {
+			return Vector.divide(vector, size);
+		}
+		return vector;
+	};
+
 	return Vector;
 
 })

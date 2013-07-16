@@ -160,88 +160,6 @@ define(['class', 'vec'], function(Class, vec) {
 
 		epsilon: 0.000001,
 
-		_vcheck: function() {
-			for(var i=0;i<arguments.length;i++) {
-				if(typeof arguments[i] !== 'object') {
-					throw new Error('Vector is not a proper vector: "'+arguments[i]+'"');
-				}
-				if(isNaN(arguments[i].x)) {
-					throw new Error('Vector.x is not a proper vector: "'+arguments[i]+'"');
-				}
-				if(isNaN(arguments[i].y)) {
-					throw new Error('Vector.y is not a proper vector: "'+arguments[i]+'"');
-				}
-			}
-		},
-
-		subtract_vector: function(v1, v2) {
-			this._vcheck(v1, v2);
-			return {
-				x: v1.x - v2.x,
-				y: v1.y - v2.y
-			};
-		},
-		add_vector: function(a, b) {
-			this._vcheck(a,b);
-			return {
-				x: a.x + b.x,
-				y: a.y + b.y
-			};
-		},
-		multiply_vector: function(v1, scalar) {
-			this._vcheck(v1);
-			return {
-				x: v1.x*scalar,
-				y: v1.y*scalar
-			};
-		},
-		divide_vector: function(vector, scalar) {
-			this._vcheck(vector);
-			return {
-				x: vector.x/scalar,
-				y: vector.y/scalar
-			};
-		},
-		project_vector: function(project, onto) {
-			this._vcheck(project,onto);
-			var d = this.dot_product(onto, onto);
-			if(0 < d) {
-				var dp = this.dot_product(project, onto);
-				return this.multiply_vector(onto, dp/d);
-			}
-			return onto;
-		},
-		dot_product: function(v1, v2) {
-			this._vcheck(v1,v2);
-			return v1.x*v2.x + v1.y*v2.y;
-		},
-		vector_length: function(vector) {
-			this._vcheck(vector);
-			return Math.sqrt(this.vector_length_squared(vector));
-		},
-		vector_length_squared: function(vector) {
-			this._vcheck(vector);
-			return this.dot_product(vector, vector);
-		},
-		vector_to_length: function(vector, length) {
-			this._vcheck(vector);
-			return this.multiply_vector(this.normalize_vector(vector), length);
-		},
-		normalize_vector: function(vector) {
-			this._vcheck(vector);
-			var length = this.vector_length(vector);
-			if(0 < length) {
-				return this.divide_vector(vector, length);
-			}
-			return vector;
-		},
-		negate_vector: function(vector) {
-			this._vcheck(vector);
-			return {
-				x: -vector.x,
-				y: -vector.y
-			};
-		},
 		small: function(a,b) {
 			return (Math.abs(a - b) <= this.epsilon);
 			return (Math.abs(a - b) <= this.epsilon * Math.max(1.0, Math.abs(a), Math.abs(b)));
@@ -284,9 +202,9 @@ define(['class', 'vec'], function(Class, vec) {
 		},
 
 		vs_point: function(point) {
-			var direction = this.subtract_vector(point, this.get_position());
-			if(this.vector_length_squared(direction) <= (this.get_radius()*this.get_radius())) {
-				var normal = this.normalize_vector(this.negate_vector(point));
+			var direction = vec.subtract(point, this.get_position());
+			if (vec.length_squared(direction) <= (this.get_radius() * this.get_radius())) {
+				var normal = vec.normalize(vec.negate(point));
 				return {
 					position: { x: point.x, y: point.y },
 					normal: normal
@@ -387,7 +305,7 @@ define(['class', 'vec'], function(Class, vec) {
 		vs_moving_circle: function(other) {
 			var t = this.vs_circle(other);
 			return t;
-			var relativePosition = this.subtract_vector(this.get_previous_position(), other.get_previous_position());
+			var relativePosition = vec.subtract(this.get_previous_position(), other.get_previous_position());
 			var otherCircle = new Collision.Circle(other.get_position(), other.get_radius());
 			var selfCircle = new Collision.MovingCircle(this.get_position(), this.get_radius(), relativePosition);
 			return selfCircle.vs_circle(otherCircle);
@@ -411,18 +329,18 @@ define(['class', 'vec'], function(Class, vec) {
 
 		vs_circle: function(circle) {
 			// The line between start and end
-			var lineDirVec = this.subtract_vector(this.start, this.end);
+			var lineDirVec = vec.subtract(this.start, this.end);
 			// vector from sphere to start
-			var lineCenterVec = this.subtract_vector(circle.get_position(), this.start);
+			var lineCenterVec = vec.subtract(circle.get_position(), this.start);
 
-			var lineSqrDist = this.dot_product(lineDirVec, lineDirVec);
-			var b = 2 * this.dot_product(lineCenterVec, lineDirVec);
+			var lineSqrDist = vec.dot(lineDirVec, lineDirVec);
+			var b = 2 * vec.dot(lineCenterVec, lineDirVec);
 
-			var b = 2 * this.dot_product(lineCenterVec, lineDirVec);
+			var b = 2 * vec.dot(lineCenterVec, lineDirVec);
 
 			var radiusSqr = circle.get_radius() * circle.get_radius();
 
-			var lineCenterDist = this.dot_product(lineCenterVec, lineCenterVec) - radiusSqr;
+			var lineCenterDist = vec.dot(lineCenterVec, lineCenterVec) - radiusSqr;
 
 			var discriminant = (b * b) - 4 * lineSqrDist * lineCenterDist;
 
@@ -455,10 +373,10 @@ define(['class', 'vec'], function(Class, vec) {
 			// t1 is an intersection, and if it hits, it's closer than t2 would be Impale, Poke
 			
 			if (t1 >= 0 && t1 <= 1) {
-				hit = this.multiply_vector(lineDirVec, t1);
+				hit = vec.multiply(lineDirVec, t1);
 			} else if (t2 >= 0 && t2 <= 1) {
 				// start point inside circle
-				hit = this.multiply_vector(lineDirVec, t2);
+				hit = vec.multiply(lineDirVec, t2);
 				
 			} else if (t1 < 0 && t2 > 0 && t1 === t2) {
 				console.log('smack!');
@@ -466,7 +384,7 @@ define(['class', 'vec'], function(Class, vec) {
 			} else if (t1 < 0 && t2 > 0) {
 				// totally inside
 				return false;
-				hit = this.multiply_vector(lineDirVec, t1);
+				hit = vec.multiply(lineDirVec, t1);
 				//console.log('Fully inside', t1, t2);
 			} else if (t1 < 0 && t2 < 0) {
 				//console.log('Past',t1,t2);
@@ -476,8 +394,8 @@ define(['class', 'vec'], function(Class, vec) {
 				return false;
 			}
 			var collision = {};
-			collision.position = this.subtract_vector(this.start, hit);
-			collision.normal = this.normalize_vector(this.subtract_vector(collision.position, circle.get_position()));
+			collision.position = vec.subtract(this.start, hit);
+			collision.normal = vec.normalize(vec.subtract(collision.position, circle.get_position()));
 			collision.penetration = vec.length(hit);
 			return collision;
 		}
