@@ -188,21 +188,21 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 			expect(circleA.vs_point({x: 0, y: -6})).toEqual(false);
 		});
 
-		it('vs_point() on the border of circle should collide', function() {
-			expect(circleA.vs_point({x: 5, y: 0})).toEqual(getResponse(5, 0, -1, 0));
-			expect(circleA.vs_point({x: -5, y: 0})).toEqual(getResponse(-5, 0, 1, 0));
-			expect(circleA.vs_point({x: 0, y: 5})).toEqual(getResponse(0, 5, 0, -1));
-			expect(circleA.vs_point({x: 0, y: -5})).toEqual(getResponse(0, -5, 0, 1));
+		it('vs_point() on the border of circle should not collide', function() {
+			expect(circleA.vs_point({x: 5, y: 0})).toEqual(false);
+			expect(circleA.vs_point({x: -5, y: 0})).toEqual(false);
+			expect(circleA.vs_point({x: 0, y: 5})).toEqual(false);
+			expect(circleA.vs_point({x: 0, y: -5})).toEqual(false);
 		});
 
 		it('vs_point() inside the circle should collide', function() {
-			expect(circleA.vs_point({x: 3, y: 3})).toEqual(getResponse(3, 3, -diag, -diag));
-			expect(circleA.vs_point({x: -3, y: -3})).toEqual(getResponse(-3, -3, diag, diag));
-			expect(circleA.vs_point({x: -3, y: 3})).toEqual(getResponse(-3, 3, diag, -diag));
+			expect(circleA.vs_point({x: 3, y: 3})).toEqual(getResponse(3, 3, -diag, -diag, 0.7573593128807152));
+			expect(circleA.vs_point({x: -3, y: -3})).toEqual(getResponse(-3, -3, diag, diag, 0.7573593128807152));
+			expect(circleA.vs_point({x: -3, y: 3})).toEqual(getResponse(-3, 3, diag, -diag, 0.7573593128807152));
 		});
 
-		it('vs_point() right on top of the circle should collide', function() {
-			expect(circleA.vs_point({x: 0, y: 0})).toEqual(getResponse(0, 0, 0, 0));
+		it('vs_point() circle on top of point should not collide', function() {
+			expect(circleA.vs_point({x: 0, y: 0})).toEqual(false);
 		});
 
 		it("vs_circle() A should not collide with B", function() {

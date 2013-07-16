@@ -202,15 +202,17 @@ define(['class', 'vec'], function(Class, vec) {
 		},
 
 		vs_point: function(point) {
-			var direction = vec.subtract(point, this.get_position());
-			if (vec.length_squared(direction) <= (this.get_radius() * this.get_radius())) {
-				var normal = vec.normalize(vec.negate(point));
-				return {
-					position: { x: point.x, y: point.y },
-					normal: normal
-				};
+			var midline = vec.subtract(this.get_position(), point);
+			var size = vec.length(midline);
+
+			if (size <= 0 || size >= this.get_radius()) {
+				return false;
 			}
-			return false;
+			return {
+				position: {x: point.x, y: point.y},
+				normal: vec.multiply(midline, (1 / size)),
+				penetration: this.get_radius() - size
+			};
 		}
 	});
 
@@ -237,7 +239,6 @@ define(['class', 'vec'], function(Class, vec) {
 		},
 
 		update: function(object, elapsed) {
-
 			this.position = object.position;
 			this.previous_position = {
 				x: this.position.x - object.velocity.x * (elapsed / 1000),
