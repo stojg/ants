@@ -56,6 +56,7 @@ define(['class', 'vec'], function(Class, vec) {
 					if(objectA.static) {
 						continue;
 					}
+					// dont check the same pair again
 					if(!this.should_check(objectA, objectB)) {
 						continue;
 					}
@@ -163,7 +164,23 @@ define(['class', 'vec'], function(Class, vec) {
 		small: function(a,b) {
 			return (Math.abs(a - b) <= this.epsilon);
 			return (Math.abs(a - b) <= this.epsilon * Math.max(1.0, Math.abs(a), Math.abs(b)));
-		}
+		},
+		get_position: function() {
+			return this.position;
+		},
+
+		get_has_moved: function() {
+			if (this.get_position().x !== this.get_previous_position().x) {
+				return true;
+			}
+
+			if (this.get_position().y !== this.get_previous_position().y) {
+				return true;
+			}
+			return false;
+		},
+
+
 	});
 
 	Collision.Circle = Collision.Shape.extend({
@@ -179,10 +196,6 @@ define(['class', 'vec'], function(Class, vec) {
 			return this.radius;
 		},
 		
-		get_position: function() {
-			return this.position;
-		},
-
 		update: function(object) {
 			this.position = object.position;
 		},
@@ -216,7 +229,7 @@ define(['class', 'vec'], function(Class, vec) {
 		}
 	});
 
-	Collision.MovingCircle = Collision.Shape.extend({
+	Collision.MovingCircle = Collision.Circle.extend({
 
 		init: function(position, radius, previous_position) {
 			if(isNaN(radius)) {
@@ -228,10 +241,6 @@ define(['class', 'vec'], function(Class, vec) {
 		},
 		get_radius: function() {
 			return this.radius;
-		},
-
-		get_position: function() {
-			return this.position;
 		},
 
 		get_previous_position: function() {
@@ -246,34 +255,13 @@ define(['class', 'vec'], function(Class, vec) {
 			}
 		},
 
-		get_has_moved: function() {
-			if(this.get_position().x !== this.get_previous_position().x) {
-				return true;
-			}
-
-			if(this.get_position().y !== this.get_previous_position().y) {
-				return true;
-			}
-			return false;
-		},
-
 		vs_point: function(point) {
 			if(this.get_has_moved()) {
 				var bAbsorbedA = new Collision.Circle(point, this.get_radius());
 				var travelA = new Collision.Segment(this.previous_position, this.position);
 				return travelA.vs_circle(bAbsorbedA);
 			}
-			
-			var midline = vec.subtract(this.get_position(), point);
-			var size = vec.length(midline);
-			if (size <= 0 || size >= this.get_radius()) {
-				return false;
-			}
-			return {
-				position: point,
-				normal: vec.multiply(midline, (1 / size)),
-				penetration: (this.get_radius() - size)
-			};
+			return this._super(point);
 		},
 
 		vs_circle: function(other) {
@@ -282,25 +270,26 @@ define(['class', 'vec'], function(Class, vec) {
 			var size = vec.length(midline);
 			var outside = (size <= 0 || size >= combinedRadius);
 
-			if (outside && this.get_has_moved()) {
-				var bAbsorbedA = new Collision.Circle(other.get_position(), combinedRadius);
-				var travelA = new Collision.Segment(this.get_previous_position(), this.get_position());
-				var collision = travelA.vs_circle(bAbsorbedA);
-				if (collision) {
-					collision.penetration = vec.length(vec.subtract(this.previous_position, this.position)) - collision.penetration;
-					return collision;
-				}
+			if (!outside) {
+				return {
+					position: vec.multiply(vec.add(this.position, midline), 0.5),
+					normal: vec.multiply(midline, (1 / size)),
+					penetration: (combinedRadius - size)
+				};
+			}
+
+			if (outside && !this.get_has_moved()) {
 				return false;
 			}
 
-			if (outside) {
-				return false;
+			var bAbsorbedA = new Collision.Circle(other.get_position(), combinedRadius);
+			var travelA = new Collision.Segment(this.get_previous_position(), this.get_position());
+			var collision = travelA.vs_circle(bAbsorbedA);
+			if (collision) {
+				collision.penetration = vec.length(vec.subtract(this.previous_position, this.position)) - collision.penetration;
+				return collision;
 			}
-			return {
-				position: vec.multiply(vec.add(this.position, midline), 0.5),
-				normal: vec.multiply(midline, (1 / size)),
-				penetration: (combinedRadius - size)
-			};
+			return false;
 		},
 
 		vs_moving_circle: function(other) {
@@ -394,11 +383,13 @@ define(['class', 'vec'], function(Class, vec) {
 				//console.log('Fell short',t1,t2);
 				return false;
 			}
-			var collision = {};
-			collision.position = vec.subtract(this.start, hit);
-			collision.normal = vec.normalize(vec.subtract(collision.position, circle.get_position()));
-			collision.penetration = vec.length(hit);
-			return collision;
+
+			var hitPosition = vec.subtract(this.start, hit);
+			return {
+				position: hitPosition,
+				normal: vec.normalize(vec.subtract(hitPosition, circle.get_position())),
+				penetration: vec.length(hit)
+			};
 		}
 	});
 
