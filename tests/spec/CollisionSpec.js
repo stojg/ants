@@ -412,8 +412,29 @@ define(['collision', 'gameobject', 'libs/QuadTree'], function(Collision, GameObj
 				pair = list.pop();
 				expect(pair.first.name).toEqual('top');
 				expect(pair.second.name).toEqual('center');
+			});
 
+			it('4. Raycast should miss circle', function() {
+				object1 = createObject('object1', 10, 0, 0, 0, 3, 3, 5);
+				detector = getCollisionDetector(object1);
+				var hitList = detector.raycast({x: 0, y: 0}, {x: 4, y: 0});
+				expect(hitList.length()).toEqual(0);
+			});
 
+			it('5. Raycast should hit circle left-right', function() {
+				object1 = createObject('object1', 10, 0, 0, 0, 3, 3, 5);
+				detector = getCollisionDetector(object1);
+				var hitList = detector.raycast({x: 0, y: 0}, {x: 6, y: 0});
+				var hit = hitList.pop();
+				expect(hit.result).toEqual(getResponse(5, 0, -1, 0, 1));
+			});
+
+			it('5. Raycast should hit circle up-down', function() {
+				object1 = createObject('object1', 0, 10, 0, 0, 3, 3, 5);
+				detector = getCollisionDetector(object1);
+				var hitList = detector.raycast({x: 0, y: 0}, {x: 0, y: 6});
+				var hit = hitList.pop();
+				expect(hit.result).toEqual(getResponse(0, 5, 0, -1, 1));
 			});
 		});
 	});

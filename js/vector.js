@@ -2,6 +2,10 @@
 define(function() {
 	var Vector = Vector || {};
 
+	Vector.create = function(x, y) {
+		return {x: x, y: y};
+	}
+
 	Vector._vcheck = function() {
 		for (var i = 0; i < arguments.length; i++) {
 			if (typeof arguments[i] !== 'object') {

@@ -1,4 +1,4 @@
-define(['class', 'vector'], function() {
+define(['class', 'vec', 'vector'], function(Class, sVec) {
 
 	// shorthand for vector create
 	var vec = Vector.create;
@@ -26,7 +26,7 @@ define(['class', 'vector'], function() {
 			this.max_angular_velocity = args.max_angular_velocity || 0;
 			this.max_angular_acceleration = args.max_angular_acceleration || 0;
 			this.radius = args.radius || 0;
-			this.name = args.name || '';
+			this.name = args.name || 'undefined';
 			this.type = args.type || 'undefined';
 		}
 	});
@@ -321,7 +321,7 @@ define(['class', 'vector'], function() {
 	 * targets and flees from that collision point.
 	 */
 	ai.steering.CollisionAvoidance = Class.extend({
-		init: function(character, targets, o) {
+		init: function(character, targets) {
 			this.character = character;
 			this.targets = targets;
 		},
@@ -330,10 +330,10 @@ define(['class', 'vector'], function() {
 			// 1. Find the target that's closest to collision
 
 			// Anything furtjer away then the below value will be disregarded
-			var shortestTime = 0.35;
+			var shortestTime = 0.40;
 			var steering = new ai.steering.Output();
 
-			// Store the target that collides then, and other datea
+			// Store the target that collides then, and other data
 			// that we will need and can avoid recalc
 			var firstTarget = false;
 			var firstMinSeparation = false;
@@ -421,10 +421,10 @@ define(['class', 'vector'], function() {
 	});
 
 	ai.steering.ObstacleAvoidance = ai.steering.Seek.extend({
-		init: function(character, targets) {
-			this.CollisionDetector = new ai.steering.CollisionDetector(character, targets);
-			this.avoidDistance = 15;
+		init: function(character, type) {
+			this.avoidDistance = 5;
 			this.lookahead = 50;
+			this.type = type;
 			this._super(character, new ai.steering.Kinematics());
 		},
 		get: function() {
@@ -434,16 +434,33 @@ define(['class', 'vector'], function() {
 			var rayVector = character.velocity;
 			rayVector = rayVector.normalize().multiply(this.lookahead);
 
-			
-			var collision = this.CollisionDetector.getCollision(character.position, rayVector);
+			var nicePosition = {x: character.position.e(1), y: character.position.e(2)};
+			var niceRay = {x: rayVector.e(1), y: rayVector.e(2)};
+			var collisions = window.detector.raycast(nicePosition, niceRay, this.character.radius + this.avoidDistance);
 
-			if (!collision) {
+			var list = collisions.get_all();
+
+			var closestDistance = 0;
+			var closestResult = false;
+			for (var i = 0; i < list.length; i++) {
+				var nodeName = list[i].first.name;
+				if (character.name === nodeName) {
+					continue;
+				}
+				if (list[i].first.type !== this.type) {
+					continue;
+				}
+				if (list[i].result.penetration > closestDistance) {
+					closestDistance = list[i].result.penetration;
+					closestResult = list[i].result;
+				}
+			}
+			if (!closestResult) {
 				return steering;
 			}
-
-			var b = collision.normal.multiply(this.avoidDistance);
-
-			this.target.position = collision.position.add(b);
+			var b = sVec.multiply(closestResult.normal, this.character.radius);
+			var brupp = sVec.add(closestResult.position, b);
+			this.target.position = vec([brupp.x, brupp.y]);
 			return this._super();
 		}
 	});
@@ -493,83 +510,6 @@ define(['class', 'vector'], function() {
 			}
 			this.target.position.add(this.target.velocity.multiply(prediction));
 			return this._super();
-		}
-	});
-
-	ai.steering.CollisionDetector = Class.extend({
-		init: function(character, targets) {
-			this.character = character;
-			this.entities = targets;
-		},
-		getCollision: function(position, ray) {
-			var totalRadius = this.character.radius
-			for (var i = this.entities.length - 1; i >= 0; i--) {
-				var entity = this.entities[i];
-				
-				// starting point
-				var E = position;
-				var L = position.add(ray);
-				var C = entity.position;
-				var r = entity.radius+totalRadius+1;
-
-				// direction vector
-				var d = ray;
-				// vector from sphere to start
-				var f = E.subtract(C);
-
-				var a = d.dot(d);
-				var b = 2*f.dot(d);
-				var c = f.dot(f) - r*r;
-
-				var discriminant = b*b-4*a*c;
-
-				 // no intersection
-				if(discriminant < 0 ) {
-					continue;
-				}
-
-				// ray didn't totally miss sphere,
-				// so there is a solution to
-				// the equation.
-				discriminant = Math.sqrt( discriminant );
-
-				// either solution may be on or off the ray so need to test both
-				// t1 is always the smaller value, because BOTH discriminant and
-				// a are nonnegative.
-				var t1 = (-b - discriminant)/(2*a);
-				var t2 = (-b + discriminant)/(2*a);
-
-				var hit = false;
-
-				// 3x HIT cases:
-				//          -o->             --|-->  |            |  --|->
-				// Impale(t1 hit,t2 hit), Poke(t1 hit,t2>1), ExitWound(t1<0, t2 hit),
-
-				// 3x MISS cases:
-				//       ->  o                     o ->              | -> |
-				// FallShort (t1>1,t2>1), Past (t1<0,t2<0), CompletelyInside(t1<0, t2>1)
-
-				// t1 is an intersection, and if it hits, it's closer than t2 would be Impale, Poke
-				if( t1 >= 0 && t1 <= 1 ) {
-					hit = ray.multiply(t1);
-					// here t1 didn't intersect so we are either started inside the sphere or completely past it
-				} else if( t2 >= 0 && t2 <= 1 ) {
-					hit = ray.multiply(t2);
-				}
-
-				if(hit === false) {
-					return false;
-				}
-
-				collision = {
-					position: null,
-					normal: null
-				}
-
-				collision.position = hit.add(position);
-				collision.normal = collision.position.subtract(entity.position).normalize();
-				return collision;
-			}
 		}
 	});
 

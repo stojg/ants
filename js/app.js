@@ -35,12 +35,12 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			for (var i = 0; i < 40; i++) {
+			for (var i = 0; i < 10; i++) {
 				var posX = Math.random()*960;
 				var posY = Math.random()*320;
-				layer.addNode(Ant.create({x: posX,y: posY}, layer, new Collision.Circle({x:posX, y:posY}, 3)));
+				layer.addNode(Ant.create({x: posX,y: posY}, layer));
 			}
-			for (var i = 0; i < 40; i++) {
+			for (var i = 0; i < 10; i++) {
 				layer.addNode(create_stone([(Math.random()*960), (Math.random()*320)], layer));
 			}
 			layer.addNode(create_stone([300,140], layer));
@@ -57,21 +57,21 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			window.engine.scenes.activateScene(scene);
 
 			layer.on('mouseup', function(args) {
-				layer.addNode(Ant.create(args.position, layer, new Collision.Circle(args.position, 3)));
+				layer.addNode(Ant.create(args.position, layer));
 			});
 
 			var bounds = {x:0,y:0,width:Game.world.width,height:Game.world.height}
-			window.quad = new QuadTree(bounds,false,8,8);
-			window.engine.go(30, update);
+			window.quad = new QuadTree(bounds,false,8);
+			window.engine.go(1, update);
 		});
 	};
 
 	var update = function(elapsed) {
 		var main_scene = window.engine.scenes.getScene('main');
 		set_graph(main_scene.getLayer('action'));
-		var detector = new Collision.Detector(main_scene.getLayer('action').objects, window.quad);
-		detector.test();
-		detector.resolve();
+		window.detector = new Collision.Detector(main_scene.getLayer('action').objects, window.quad);
+		window.detector.test();
+		window.detector.resolve();
 	};
 
 	var create_stone = function(position, layer) {
@@ -83,7 +83,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			anchor: {x: 0.5, y: 0.5},
 			static: true,
 			type: 'obstacle'
-		}, new Collision.Circle({x:position[0], y:position[1]}, 10));
+		}, new Collision.Circle({x: position[0], y: position[1]}, 10));
 	};
 
 	var create_horizontal_wall = function(position, layer) {

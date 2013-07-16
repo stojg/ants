@@ -67,9 +67,50 @@ define(['class', 'vec'], function(Class, vec) {
 					}
 				}
 			}
-			
-			
 			return this.collisionList;
+		},
+		resolve: function() {
+			var collision;
+			while (collision = this.collisionList.pop()) {
+				var a = this.originals[collision.first.name];
+				var b = this.originals[collision.second.name]
+				var response = collision.result;
+				if (b.static) {
+					a.position = vec.add(a.position, vec.multiply(response.normal, response.penetration));
+					a.velocity = vec.add(a.velocity, vec.multiply(response.normal, vec.length(a.velocity) * 0.2));
+					continue;
+				}
+				a.position = vec.add(a.position, vec.multiply(response.normal, response.penetration * 0.5));
+				a.velocity = vec.add(a.velocity, vec.multiply(response.normal, vec.length(a.velocity) * 0.2));
+				b.position = vec.add(b.position, vec.multiply(vec.negate(response.normal), response.penetration * 0.5));
+				b.velocity = vec.add(b.velocity, vec.multiply(vec.negate(response.normal), vec.length(b.velocity) * 0.2));
+			}
+		},
+
+		raycast: function(position, ray, radius) {
+			var origin;
+			if (radius) {
+				origin = new Collision.MovingCircle(vec.add(position, ray), radius, position);
+			} else {
+				origin = new Collision.Segment(vec.add(position, ray), position);
+			}
+			var neighbours = this.quad.retrieve({
+				x: position.x,
+				y: position.y,
+				height: 10,
+				width: 10,
+			});
+			
+			var hitList = new Collision.List();
+			for (var i = 0; i < neighbours.length; i++) {
+				var object = neighbours[i].node;
+				var hitTest = object.get_collision();
+				var result = origin.vs_circle(hitTest);
+				if (result) {
+					hitList.insert(object, null, result);
+				}
+			}
+			return hitList;
 		},
 
 		hitTest: function(a, b) {
@@ -93,24 +134,6 @@ define(['class', 'vec'], function(Class, vec) {
 			} else {
 				throw new Error('Missed to implement a Collision.Shape check');
 			}
-		},
-
-		resolve: function() {
-			var collision;
-			while(collision = this.collisionList.pop()) {
-				var a = this.originals[collision.first.name];
-				var b = this.originals[collision.second.name]
-				var response = collision.result;
-				if (b.static) {
-					a.position = vec.add(a.position, vec.multiply(response.normal, response.penetration));
-					a.velocity = vec.add(a.velocity, vec.multiply(response.normal, vec.length(a.velocity) * 0.2));
-					continue;
-				}
-				a.position = vec.add(a.position, vec.multiply(response.normal, response.penetration * 0.5));
-				a.velocity = vec.add(a.velocity, vec.multiply(response.normal, vec.length(a.velocity) * 0.2));
-				b.position = vec.add(b.position, vec.multiply(vec.negate(response.normal), response.penetration * 0.5));
-				b.velocity = vec.add(b.velocity, vec.multiply(vec.negate(response.normal), vec.length(b.velocity) * 0.2));
-			}	
 		},
 
 		should_check: function(a, b) {
@@ -226,7 +249,16 @@ define(['class', 'vec'], function(Class, vec) {
 				normal: vec.multiply(midline, (1 / size)),
 				penetration: this.get_radius() - size
 			};
+		},
+		vs_line: function(line) {
+			var result = line.vs_circle(this);
+			if (!result) {
+				return false;
+			}
+			result.penetration = line.get_length() - result.penetration;
+			return result;
 		}
+
 	});
 
 	Collision.MovingCircle = Collision.Circle.extend({
@@ -316,13 +348,18 @@ define(['class', 'vec'], function(Class, vec) {
 		get_end_position: function() {
 			return this.end;
 		},
+		get_length: function() {
+			return vec.length(vec.subtract(this.start, this.end));
+		},
 
 		vs_circle: function(circle) {
+			
 			// The line between start and end
 			var lineDirVec = vec.subtract(this.start, this.end);
+			
 			// vector from sphere to start
 			var lineCenterVec = vec.subtract(circle.get_position(), this.start);
-
+			
 			var lineSqrDist = vec.dot(lineDirVec, lineDirVec);
 			var b = 2 * vec.dot(lineCenterVec, lineDirVec);
 
@@ -342,7 +379,7 @@ define(['class', 'vec'], function(Class, vec) {
 
 			// ray didn't totally miss sphere, so there is a solution to the equation.
 			discriminant = Math.sqrt(discriminant);
-
+			
 			// either solution may be on or off the ray so need to test both
 			// t1 is always the smaller value, because BOTH discriminant and
 			// a are nonnegative.
@@ -362,9 +399,9 @@ define(['class', 'vec'], function(Class, vec) {
 
 			// t1 is an intersection, and if it hits, it's closer than t2 would be Impale, Poke
 			
-			if (t1 >= 0 && t1 <= 1) {
+			if (t1 > 0 && t1 < 1) {
 				hit = vec.multiply(lineDirVec, t1);
-			} else if (t2 >= 0 && t2 <= 1) {
+			} else if (t2 > 0 && t2 < 1) {
 				// start point inside circle
 				hit = vec.multiply(lineDirVec, t2);
 				
