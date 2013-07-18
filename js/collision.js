@@ -401,12 +401,13 @@ define(['class', 'vec'], function(Class, vec) {
 
 			// t1 is an intersection, and if it hits, it's closer than t2 would be Impale, Poke
 			
-			if (t1 > 0 && t1 < 1) {
+			if (t1 > 0 && t1 < 1 && t1 > t2) {
+				//console.log(t1);
 				hit = vec.multiply(lineDirVec, t1);
 			} else if (t2 > 0 && t2 < 1) {
 				// start point inside circle
 				hit = vec.multiply(lineDirVec, t2);
-				
+
 			} else if (t1 < 0 && t2 > 0 && t1 === t2) {
 				console.log('smack!');
 				return false;
