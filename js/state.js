@@ -12,7 +12,11 @@ define(['class'], function () {
 	State.Machine = Class.extend({
 		init: function(initial_state) {
 			this.initial_state = initial_state;
-			this.current_state = this.initial_state;
+			
+		},
+		set_owner: function(owner) {
+			this.owner = owner;
+			this.current_state = new this.initial_state(this.owner);
 		},
 		update: function() {
 			var triggered_transition = false;

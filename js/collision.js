@@ -135,6 +135,8 @@ define(['class', 'vec'], function(Class, vec) {
 				return testA.vs_circle(testB);
 			} else if(testB instanceof Collision.MovingCircle) {
 				return testA.vs_moving_circle(testB);
+			} else if(testB instanceof Collision.Null) {
+				return false;
 			} else {
 				throw new Error('Missed to implement a Collision.Shape check');
 			}
@@ -193,6 +195,24 @@ define(['class', 'vec'], function(Class, vec) {
 		},
 
 
+	});
+
+	Collision.Null = Collision.Shape.extend({
+		get_radius: function() {
+			return null;
+		},
+		vs_circle: function() {
+			return false;
+		},
+		vs_moving_circle: function() {
+			return false;
+		},
+		vs_point: function() {
+			return false;
+		},
+		vs_line: function() {
+
+		}
 	});
 
 	Collision.Circle = Collision.Shape.extend({

@@ -4,12 +4,13 @@ define(['gameobject', 'state', 'ai/steering', 'collision'], function (GameObject
 	var Ant = GameObject.extend({
 		inventory: false,
 		
-		init : function(args, initial_state, collision) {
+		init: function(args, collision, statemachine) {
 			args = args || {};
 			args.type = 'ant';
 			this._super(args, collision);
 			this.setup_animations();
-			this.statemachine = new State.Machine(new initial_state(this));
+			this.statemachine = statemachine;
+			this.statemachine.set_owner(this);
 		},
 
 		carries: function(what) {
@@ -158,10 +159,9 @@ define(['gameobject', 'state', 'ai/steering', 'collision'], function (GameObject
 
 	// Factory method
 	Ant.create = function(position, layer) {
-		var collision = new Collision.MovingCircle(position, 3);
 		return new Ant({
-			size : { width: 7, height: 5 },
-			collision : { width: 5, height: 3 },
+			size: {width: 7, height: 5},
+			collision: {width: 5, height: 3},
 			max_velocity: 60,
 			max_acceleration: 0.1,
 			max_angular_velocity: 0.5,
@@ -170,7 +170,10 @@ define(['gameobject', 'state', 'ai/steering', 'collision'], function (GameObject
 			position: position,
 			layer: layer,
 			static: false
-		}, State.find_food, collision);
+		},
+		new Collision.MovingCircle(position, 3),
+		new State.Machine(State.find_food)
+		);
 	}
 
 	return Ant;
