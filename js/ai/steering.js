@@ -434,10 +434,10 @@ define(['class', 'vec', 'vector'], function(Class, vec) {
 		}
 	});
 
-	ai.steering.ObstacleAvoidance = ai.steering.Seek.extend({
-		init: function(character, type) {
-			this.avoidDistance = 6;
-			this.lookahead = 50;
+	ai.steering.ObstacleAvoidance = ai.steering.Arrive.extend({
+		init: function(character, type, avoidDistance, lookahead) {
+			this.avoidDistance = avoidDistance;
+			this.lookahead = lookahead;
 			this.type = type;
 			this._super(character, new ai.steering.Kinematics());
 		},
@@ -450,8 +450,7 @@ define(['class', 'vec', 'vector'], function(Class, vec) {
 
 			var nicePosition = {x: character.position.e(1), y: character.position.e(2)};
 			var niceRay = {x: rayVector.e(1), y: rayVector.e(2)};
-			var collisions = window.detector.raycast(nicePosition, niceRay, this.character.radius + this.avoidDistance);
-
+			var collisions = window.detector.raycast(nicePosition, niceRay, this.avoidDistance);
 			var list = collisions.get_all();
 
 			var closestDistance = 0;
@@ -472,8 +471,7 @@ define(['class', 'vec', 'vector'], function(Class, vec) {
 			if (!closestResult) {
 				return steering;
 			}
-			
-			var b = vec.multiply(closestResult.normal, this.character.radius);
+			var b = vec.multiply(closestResult.normal, this.avoidDistance);
 			var brupp = vec.add(closestResult.position, b);
 			this.target.position = sylVec([brupp.x, brupp.y]);
 			return this._super();
