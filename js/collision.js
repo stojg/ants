@@ -94,7 +94,7 @@ define(['class', 'vec'], function(Class, vec) {
 		raycast: function(position, ray, radius) {
 			var origin;
 			if (radius) {
-				origin = new Collision.MovingCircle(vec.add(position, ray), radius, position);
+				origin = new Collision.MovingCircle(position, radius, vec.add(position, ray));
 			} else {
 				origin = new Collision.Segment(vec.add(position, ray), position);
 			}
