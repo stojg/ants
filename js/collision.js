@@ -141,29 +141,14 @@ define(['class', 'vec'], function(Class, vec) {
 		},
 
 		should_check: function(a, b) {
-			if(a.name in this.checked_pairs && b.name in this.checked_pairs[a.name]){
-				return false;
-			}
-			if(b.name in this.checked_pairs&& a.name in this.checked_pairs[b.name]){
-				return false;
-			}
-			if(!(a.name in this.checked_pairs)) {
-				this.checked_pairs[a.name] = [];
-				this.checked_pairs[a.name][b.name] = true;
+			var names = [a.name, b.name].sort();
+			var sortedNames = (names[0] + names[1]);
+			if (!(sortedNames in this.checked_pairs)) {
+				this.checked_pairs[sortedNames] = true;
 				return true;
 			}
-			if(!(b.name in this.checked_pairs[a.name])) {
-				this.checked_pairs[a.name][b.name] = true;
-			}
-			if(!(b.name in this.checked_pairs)) {
-				this.checked_pairs[b.name] = [];
-				this.checked_pairs[b.name][b.name] = true;
-				return true;
-			}
-			if(!(a.name in this.checked_pairs[b.name])) {
-				this.checked_pairs[b.name][b.name] = true;
-			}
-			return true;
+			
+			return false;
 		},
 
 		reset: function() {
