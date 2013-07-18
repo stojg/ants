@@ -40,7 +40,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 				var posY = Math.random()*320;
 				layer.addNode(Ant.create({x: posX,y: posY}, layer));
 			}
-			for (var i = 0; i < 10; i++) {
+			for (var i = 0; i < 5; i++) {
 				layer.addNode(create_stone([(Math.random()*960), (Math.random()*320)], layer));
 			}
 			layer.addNode(create_stone([300,140], layer));
