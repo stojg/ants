@@ -95,6 +95,13 @@ define(function() {
 		return vector;
 	};
 
+	Vector.angle = function(v1, v2) {
+		this._vcheck(v1, v2);
+		var v1norm = Vector.normalize(v1);
+		var v2norm = Vector.normalize(v2);
+		return Vector.dot(v1norm, v2norm);
+	};
+
 	return Vector;
 
 })
