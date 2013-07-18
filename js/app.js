@@ -1,5 +1,5 @@
 "use strict";
-define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], function(Game, GameObject, Ant, Collision){
+define(["game", "gameobject", "ant", "collision", "scheduler", "kdTree", "libs/QuadTree"], function(Game, GameObject, Ant, Collision, Scheduler) {
 
 	var init = function() {
 
@@ -8,6 +8,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			Game.world.width = 96*10;
 			Game.world.height = 32*10;
 			window.engine = Game.init('game-world');
+			window.scheduler = new Scheduler.Frequency();
 
 			var bg_layer = new pulse.Layer();
 			
@@ -27,15 +28,24 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			bg2.position = {x: 768,y: 256};
 			bg_layer.addNode(bg2);
 
+			var actionLayer = pulse.Layer.extend({
+				update: function(elapsed) {
+					window.scheduler.run();
+					this._super(elapsed);
+				}
+			});
+
 			// Create a layer and add it to the scene.
-			var layer = new pulse.Layer();
+			var layer = new actionLayer();
 			layer.position = {x: 0, y: 0};
 			layer.anchor = {x: 0, y: 0};
 			layer.name = 'action';
+
+			// 
 			layer.addNode(create_home([160, 160], layer));
 			layer.addNode(create_food([680, 100], layer));
 			
-			for (var i = 0; i < 2; i++) {
+			for (var i = 0; i < 1; i++) {
 				var posX = Math.random()*960;
 				var posY = Math.random()*320;
 				layer.addNode(Ant.create({x: posX,y: posY}, layer));
@@ -64,7 +74,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			});
 
 			var bounds = {x:0,y:0,width:Game.world.width,height:Game.world.height}
-			window.quad = new QuadTree(bounds,false,8);
+			window.quad = new QuadTree(bounds, false, 8);
 			window.engine.go(1, update);
 		});
 	};
@@ -125,7 +135,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			static: true,
 			collidable: false,
 			type: 'home'
-		}, new Collision.Circle({x:position[0], y:position[1]}, 1));
+		}, new Collision.Null());
 	};
 
 	var create_food = function(position, layer) {
@@ -137,7 +147,7 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			static: true,
 			collidable: false,
 			type: 'food'
-		}, new Collision.Circle({x:position[0], y:position[1]}, 1));
+		}, new Collision.Null());
 	};
 	
 	var distance = function(a, b){

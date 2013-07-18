@@ -4,13 +4,12 @@ define(['gameobject', 'state', 'ai/steering', 'collision'], function (GameObject
 	var Ant = GameObject.extend({
 		inventory: false,
 		
-		init: function(args, collision, statemachine) {
+		init: function(args, collision) {
 			args = args || {};
 			args.type = 'ant';
 			this._super(args, collision);
 			this.setup_animations();
-			this.statemachine = statemachine;
-			this.statemachine.set_owner(this);
+			this.steering = new ai.steering.PrioritySteering();
 		},
 
 		carries: function(what) {
@@ -18,23 +17,15 @@ define(['gameobject', 'state', 'ai/steering', 'collision'], function (GameObject
 		},
 
 		update : function(elapsed) {
-			this.steering = new ai.steering.PrioritySteering();
-			var obstacle = this.get_closest('obstacle');
-			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), obstacle));
-			var ants = this.get_closest('ant');
-			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
-			this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
-			this.update_state();
-			if(typeof this.steering !== 'undefined') {
-				this.actuate(this.steering.get(), elapsed);	
-			}
-			
+			this.actuate(this.steering.get(), elapsed);
 			this._super(elapsed);
 			this.animate();
 		},
 
-		update_state: function(elapsed) {
-			var actions = this.statemachine.update();
+		update_state: function(actions) {
+			this.steering = new ai.steering.PrioritySteering();
+			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), 'obstacle'));
+			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), 'ant'));
 			if(actions.indexOf('seek_food_action') >= 0) {
 				this.steering.push(new ai.steering.Arrive(this.kinematics(), this.get_closest('food')[0]));
 			}
@@ -156,10 +147,10 @@ define(['gameobject', 'state', 'ai/steering', 'collision'], function (GameObject
 		}
 
 	});
-
+	var antsCreated = 0;
 	// Factory method
 	Ant.create = function(position, layer) {
-		return new Ant({
+		var ant = new Ant({
 			size: {width: 7, height: 5},
 			collision: {width: 5, height: 3},
 			max_velocity: 60,
@@ -170,10 +161,13 @@ define(['gameobject', 'state', 'ai/steering', 'collision'], function (GameObject
 			position: position,
 			layer: layer,
 			static: false
-		},
-		new Collision.MovingCircle(position, 3),
-		new State.Machine(State.find_food)
-		);
+		}, new Collision.MovingCircle(position, 3));
+		var state = new State.Machine(ant, State.find_food)
+		window.scheduler.add_behaviour(function() {
+			ant.update_state(state.update());
+		}, 3, antsCreated);
+		antsCreated++;
+		return ant;
 	}
 
 	return Ant;

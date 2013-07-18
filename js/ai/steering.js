@@ -347,10 +347,18 @@ define(['class', 'vec', 'vector'], function(Class, vec) {
 				y: this.character.velocity.e(2)
 			};
 
+			var objects = window.engine.graph[this.targets].nearest({x: this.character.position.e(1), y: this.character.position.e(2)}, 3);
+			var targets = [];
+			for (var key in objects) {
+				var object = objects[key][0].node;
+				if (object.name !== this.character.name) {
+					targets.push(object.kinematics());
+				}
+			}
+			
 			// Loop through each target
-			for (var i = this.targets.length - 1; i >= 0; i--) {
-				var target = this.targets[i];
-
+			for (var i = targets.length - 1; i >= 0; i--) {
+				var target = targets[i];
 				var radius = target.radius + this.character.radius;
 				var relative_velocity = target.velocity.subtract(this.character.velocity);
 				var relative_speed = relative_velocity.length();
@@ -362,7 +370,6 @@ define(['class', 'vec', 'vector'], function(Class, vec) {
 					x: relative_pos.e(1),
 					y: relative_pos.e(2)
 				}
-
 				if (vec.angle(characterVel, targetRelPos) > 0) {
 					continue;
 				}

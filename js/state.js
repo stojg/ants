@@ -10,12 +10,9 @@ define(['class'], function () {
 	 * The constructor takes a starting state with transitions to other states.
 	 */
 	State.Machine = Class.extend({
-		init: function(initial_state) {
-			this.initial_state = initial_state;
-			
-		},
-		set_owner: function(owner) {
+		init: function(owner, initial_state) {
 			this.owner = owner;
+			this.initial_state = initial_state;
 			this.current_state = new this.initial_state(this.owner);
 		},
 		update: function() {
