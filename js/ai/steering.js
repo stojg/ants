@@ -357,7 +357,6 @@ define(['class', 'vec', 'vector'], function(Class, vec) {
 				var relative_pos = this.closest_collision_point(this.character, target, radius);
 				var time_to_collision = relative_pos.dot(relative_velocity) / (relative_speed * relative_speed);
 				var distance = relative_pos.length();
-
 				
 				var targetRelPos = {
 					x: relative_pos.e(1),
@@ -367,9 +366,6 @@ define(['class', 'vec', 'vector'], function(Class, vec) {
 				if (vec.angle(characterVel, targetRelPos) > 0) {
 					continue;
 				}
-				//console.log();
-
-				//console.log();
 
 				// This value represents the gap between character and target when
 				// they are closest to eachother
@@ -531,9 +527,4 @@ define(['class', 'vec', 'vector'], function(Class, vec) {
 			return this._super();
 		}
 	});
-
-	ai.steering.Collision = {
-		position: [0, 0],
-		normal: [0, 0]
-	};
 });

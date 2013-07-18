@@ -367,8 +367,6 @@ define(['class', 'vec'], function(Class, vec) {
 			var lineSqrDist = vec.dot(lineDirVec, lineDirVec);
 			var b = 2 * vec.dot(lineCenterVec, lineDirVec);
 
-			var b = 2 * vec.dot(lineCenterVec, lineDirVec);
-
 			var radiusSqr = circle.get_radius() * circle.get_radius();
 
 			var lineCenterDist = vec.dot(lineCenterVec, lineCenterVec) - radiusSqr;
