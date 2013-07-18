@@ -77,7 +77,11 @@ define(['class', 'vec'], function(Class, vec) {
 				var response = collision.result;
 				if (b.static) {
 					a.position = vec.add(a.position, vec.multiply(response.normal, response.penetration));
-					a.velocity = vec.add(a.velocity, vec.multiply(response.normal, vec.length(a.velocity) * 0.2));
+					var friction = 0.99;
+					var restitution = 0.3;
+					var velocityNormal = vec.multiply(response.normal, vec.dot(a.velocity, response.normal));
+					var velocityT = vec.subtract(a.velocity, velocityNormal);
+					a.velocity = vec.subtract(vec.multiply(velocityT, friction), vec.multiply(velocityNormal, restitution));
 					continue;
 				}
 				a.position = vec.add(a.position, vec.multiply(response.normal, response.penetration * 0.5));
