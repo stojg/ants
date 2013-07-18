@@ -18,7 +18,8 @@ define(['gameobject', 'state', 'ai/steering', 'collision'], function (GameObject
 
 		update : function(elapsed) {
 			this.steering = new ai.steering.PrioritySteering();
-			this.steering.push(new ai.steering.ObstacleAvoidance(this.kinematics(), 'obstacle'));
+			var obstacle = this.get_closest('obstacle');
+			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), obstacle));
 			var ants = this.get_closest('ant');
 			this.steering.push(new ai.steering.CollisionAvoidance(this.kinematics(), ants));
 			this.steering.push(new ai.steering.Separation(this.kinematics(), ants));
