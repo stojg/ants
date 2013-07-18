@@ -51,6 +51,9 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 			scene.name = 'main';
 
 			scene.addLayer(bg_layer);
+			var debug = new pulse.Layer()
+			debug.name = 'debug';
+			scene.addLayer(debug);
 			scene.addLayer(layer);
 
 			window.engine.scenes.addScene(scene);
@@ -67,6 +70,11 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 	};
 
 	var update = function(elapsed) {
+		var context = window.engine.scenes.getScene('main').getLiveLayer('debug').context;
+		if(context) {
+			context.clearRect(0, 0, 960, 480);
+		}
+		
 		var main_scene = window.engine.scenes.getScene('main');
 		set_graph(main_scene.getLayer('action'));
 		window.detector = new Collision.Detector(main_scene.getLayer('action').objects, window.quad);
@@ -161,6 +169,25 @@ define(["game", "gameobject", "ant", "collision", "kdTree", "libs/QuadTree"], fu
 		for(var type in list) {
 			window.engine.graph[type] = new kdTree(list[type], distance, ["x", "y"]);
 		}
+	};
+
+	window.draw_line = function(startX, startY, endX, endY) {
+		var context = window.engine.scenes.getScene('main').getLiveLayer('debug').context;
+		context.beginPath();
+		context.moveTo(startX, startY);
+		context.lineTo(endX, endY);
+		context.lineWidth = 1;
+		context.strokeStyle = '#879038';
+		context.stroke();
+	};
+
+	window.draw_circle = function(centerX, centerY, radius) {
+		var context = window.engine.scenes.getScene('main').getLiveLayer('debug').context;
+		context.beginPath();
+		context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+		context.fillStyle = '#d00';
+		context.fill();
+
 	};
 
 	return {
