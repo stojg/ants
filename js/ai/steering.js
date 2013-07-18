@@ -1,7 +1,7 @@
-define(['class', 'vec', 'vector'], function(Class, sVec) {
+define(['class', 'vec', 'vector'], function(Class, vec) {
 
 	// shorthand for vector create
-	var vec = Vector.create;
+	var sylVec = Vector.create;
 
 	ai = {};
 	ai.steering = ai.steering || {};
@@ -15,8 +15,8 @@ define(['class', 'vec', 'vector'], function(Class, sVec) {
 		init: function(args) {
 			args = args || {};
 			// current state
-			this.position = args.position || vec([0, 0]);
-			this.velocity = args.velocity || vec([0, 0]);
+			this.position = args.position || sylVec([0, 0]);
+			this.velocity = args.velocity || sylVec([0, 0]);
 			this.orientation = args.orientation || 0;
 			this.rotation = args.rotation || 0;
 			// speed / velocity limits
@@ -36,7 +36,7 @@ define(['class', 'vec', 'vector'], function(Class, sVec) {
 	 */
 	ai.steering.Output = Class.extend({
 		init: function() {
-			this.linear = vec([0, 0]);
+			this.linear = sylVec([0, 0]);
 			this.angular = 0;
 		},
 		acceleration: function() {
@@ -342,6 +342,11 @@ define(['class', 'vec', 'vector'], function(Class, sVec) {
 			var firstRelativeVel = false;
 			var firstRadius = 0;
 
+			var characterVel = {
+				x: this.character.velocity.e(1),
+				y: this.character.velocity.e(2)
+			};
+
 			// Loop through each target
 			for (var i = this.targets.length - 1; i >= 0; i--) {
 				var target = this.targets[i];
@@ -352,6 +357,19 @@ define(['class', 'vec', 'vector'], function(Class, sVec) {
 				var relative_pos = this.closest_collision_point(this.character, target, radius);
 				var time_to_collision = relative_pos.dot(relative_velocity) / (relative_speed * relative_speed);
 				var distance = relative_pos.length();
+
+				
+				var targetRelPos = {
+					x: relative_pos.e(1),
+					y: relative_pos.e(2)
+				}
+
+				if (vec.angle(characterVel, targetRelPos) > 0) {
+					continue;
+				}
+				//console.log();
+
+				//console.log();
 
 				// This value represents the gap between character and target when
 				// they are closest to eachother
@@ -459,9 +477,9 @@ define(['class', 'vec', 'vector'], function(Class, sVec) {
 				return steering;
 			}
 			
-			var b = sVec.multiply(closestResult.normal, this.character.radius);
-			var brupp = sVec.add(closestResult.position, b);
-			this.target.position = vec([brupp.x, brupp.y]);
+			var b = vec.multiply(closestResult.normal, this.character.radius);
+			var brupp = vec.add(closestResult.position, b);
+			this.target.position = sylVec([brupp.x, brupp.y]);
 			return this._super();
 		}
 	});
