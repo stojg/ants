@@ -20,7 +20,7 @@ require.config({
 			exports: 'vec'
 		}
 	},
-	urlArgs: "version=0.4.3"
+	urlArgs: "version=0.4.4"
 });
 
 require(['app'], function(App) {
